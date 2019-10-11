@@ -1,7 +1,7 @@
 ---
 title: "Topic ideas"
-author: "NAME HERE"
-date: "TODAY'S DATE"
+author: "Six Thirty Eight"
+date: "10/11/19"
 output: github_document
 ---
 
@@ -21,3 +21,7 @@ output: github_document
 ### Dataset #!
 
 ### Dataset #2
+
+### Dataset #3
+
+### Dataset #4
