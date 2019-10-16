@@ -22,8 +22,10 @@ economic data):
 
 ### Idea \#2
 
-How different characteristics of Airbnb postings affect the price they
-can charge Airbnb’s have been on the rise, with more people using the
+How do different characteristics of Airbnb postings affect the price they
+can charge?
+
+Airbnb’s have been on the rise, with more people using the
 service to book temporary accommodation, whether it be for vacations,
 business trips, and more. Yet what’s not transparent is understanding
 how hosts can charge what they do. Good questions to explore:
