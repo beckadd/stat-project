@@ -11,5 +11,15 @@ output: github_document
 
 ### Section 3. Research questions
 
+Questions:
+
+1. How did major European economies change with colonialism? How did African economies change when colonized? Conversely, how did European/African economies change with decolonization of the African continent?
+
+ - Danger: there are a lot of factors that affect a European economies, and losing a colony might not be that impactful. Concentrate on African economies in this analysis.
+ 
+2. Was an economic crisis more likely following n years after decolonization?
+
+3. What factors are most associated with a systemic crisis in Africa? How can identify a systemic crisis in the dataset? What defines a systemic crisis, and how do African systemic crises compare to other nations' crises? 
+
 ### Section 4. Data
 
