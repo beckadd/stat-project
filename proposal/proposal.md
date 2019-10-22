@@ -1,9 +1,7 @@
----
-title: "PROJECT TITLE"
-author: "Six-Thirty-Eight"
-date: "10/22/19"
-output: github_document
----
+PROJECT TITLE
+================
+Six-Thirty-Eight
+10/22/19
 
 ### Section 1. Introduction
 
@@ -12,4 +10,3 @@ output: github_document
 ### Section 3. Research questions
 
 ### Section 4. Data
-
