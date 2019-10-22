@@ -11,7 +11,11 @@ library(tidyverse)
 
 ### Section 1. Introduction
 
+Beck
+
 ### Section 2. Exploratory data analysis
+
+Isabelle and Jerry
 
 ### Section 3. Research questions
 
@@ -26,6 +30,7 @@ Questions:
 3. What factors are most associated with a systemic crisis in Africa? How can identify a systemic crisis in the dataset? What defines a systemic crisis, and how do African systemic crises compare to other nations' crises? 
 
 ### Section 4. Data
+
 ```{r glimpse-africa-data}
 africa <- read_csv("/cloud/project/data/african_crises.csv")
 glimpse(africa)
