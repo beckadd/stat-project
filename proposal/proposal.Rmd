@@ -32,7 +32,12 @@ Questions:
 ### Section 4. Data
 
 ```{r glimpse-africa-data, warning = F, message = F}
+
 africa <- read_csv("/cloud/project/data/african_crises.csv")
+global <- read_csv("/cloud/project/data/global_crisis_data.csv")
+
 glimpse(africa)
+
+glimpse(global)
 ```
 
