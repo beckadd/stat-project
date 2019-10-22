@@ -5,7 +5,7 @@ date: "10/22/19"
 output: github_document
 ---
 
-```{r load-packages}
+```{r load-packages, warning = F}
 library(tidyverse)
 ```
 
@@ -31,7 +31,7 @@ Questions:
 
 ### Section 4. Data
 
-```{r glimpse-africa-data}
+```{r glimpse-africa-data, warning = F, message = F}
 africa <- read_csv("/cloud/project/data/african_crises.csv")
 glimpse(africa)
 ```

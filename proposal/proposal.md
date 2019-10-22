@@ -56,27 +56,6 @@ Questions:
 
 ``` r
 africa <- read_csv("/cloud/project/data/african_crises.csv")
-```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   case = col_double(),
-    ##   cc3 = col_character(),
-    ##   country = col_character(),
-    ##   year = col_double(),
-    ##   systemic_crisis = col_double(),
-    ##   exch_usd = col_double(),
-    ##   domestic_debt_in_default = col_double(),
-    ##   sovereign_external_debt_default = col_double(),
-    ##   gdp_weighted_default = col_double(),
-    ##   inflation_annual_cpi = col_double(),
-    ##   independence = col_double(),
-    ##   currency_crises = col_double(),
-    ##   inflation_crises = col_double(),
-    ##   banking_crisis = col_character()
-    ## )
-
-``` r
 glimpse(africa)
 ```
 
