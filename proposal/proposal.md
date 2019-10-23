@@ -8,14 +8,14 @@ Six-Thirty-Eight
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ─────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ──────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -25,7 +25,75 @@ Beck
 
 ### Section 2. Exploratory data analysis
 
-Isabelle and Jerry
+Isabella and Jerry
+
+``` r
+africa <- read_csv("../data/african_crises.csv")
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   case = col_double(),
+    ##   cc3 = col_character(),
+    ##   country = col_character(),
+    ##   year = col_double(),
+    ##   systemic_crisis = col_double(),
+    ##   exch_usd = col_double(),
+    ##   domestic_debt_in_default = col_double(),
+    ##   sovereign_external_debt_default = col_double(),
+    ##   gdp_weighted_default = col_double(),
+    ##   inflation_annual_cpi = col_double(),
+    ##   independence = col_double(),
+    ##   currency_crises = col_double(),
+    ##   inflation_crises = col_double(),
+    ##   banking_crisis = col_character()
+    ## )
+
+``` r
+output <- tibble(country = distinct(africa, country)$country, independence_year = 0, crisis_year = 0)
+output$independence_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(row_number()==1) %>%
+  select(year)
+```
+
+    ## Adding missing grouping variables: `country`
+
+``` r
+output$crisis_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(banking_crisis == "crisis") %>%
+  filter(row_number() == 1) %>%
+  select(year)
+```
+
+    ## Adding missing grouping variables: `country`
+
+``` r
+output <- output %>%
+  mutate(difference = (crisis_year$year - independence_year$year))
+
+output
+```
+
+    ## # A tibble: 13 x 4
+    ##    country     independence_year$… $year crisis_year$coun… $year difference
+    ##    <chr>       <chr>               <dbl> <chr>             <dbl>      <dbl>
+    ##  1 Algeria     Algeria              1968 Algeria            1990         22
+    ##  2 Angola      Angola               1975 Angola             1992         17
+    ##  3 Central Af… Central African Re…  1960 Central African …  1976         16
+    ##  4 Ivory Coast Ivory Coast          1960 Ivory Coast        1988         28
+    ##  5 Egypt       Egypt                1860 Egypt              1907         47
+    ##  6 Kenya       Kenya                1963 Kenya              1985         22
+    ##  7 Mauritius   Mauritius            1963 Mauritius          1996         33
+    ##  8 Morocco     Morocco              1956 Morocco            1983         27
+    ##  9 Nigeria     Nigeria              1960 Nigeria            1992         32
+    ## 10 South Afri… South Africa         1910 South Africa       1977         67
+    ## 11 Tunisia     Tunisia              1956 Tunisia            1991         35
+    ## 12 Zambia      Zambia               1964 Zambia             1995         31
+    ## 13 Zimbabwe    Zimbabwe             1965 Zimbabwe           1995         30
 
 ### Section 3. Research questions
 

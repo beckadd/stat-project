@@ -14,8 +14,33 @@ library(tidyverse)
 Beck
 
 ### Section 2. Exploratory data analysis
+Isabella and Jerry
 
-Isabelle and Jerry
+```{r load-data}
+africa <- read_csv("../data/african_crises.csv")
+```
+
+```{r independence}
+
+output <- tibble(country = distinct(africa, country)$country, independence_year = 0, crisis_year = 0)
+output$independence_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(row_number()==1) %>%
+  select(year)
+
+output$crisis_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(banking_crisis == "crisis") %>%
+  filter(row_number() == 1) %>%
+  select(year)
+
+output <- output %>%
+  mutate(difference = (crisis_year$year - independence_year$year))
+
+output
+```
 
 ### Section 3. Research questions
 
