@@ -49,14 +49,19 @@ ggplot(data = output, mapping = aes(y = difference)) +
 output %>%
   summarise(IQR = IQR(difference), median = median(difference))
 ```
-We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years. 
+We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years. This brings us to an interesting question - what values characterize countries that had a long period of economic prosperity after independence, and what characterizes countries that saw immediate financial crises? 
+
 ```{r inflation-crisis-relationship}
 ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis, alpha = 0.5)) +
   geom_point() + 
-  xlim(-50, 1000)
+  xlim(-50, 100)
+
+ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis)) +
+  geom_point() + 
+  xlim(-10, 100)
 
 ```
-We see that in general, 
+We see that high levels of inflation often correspond to banking crises - but this is not always true. There were many cases of banking crises that existed even when inflation was lower than typical. Moreover, banking crises also tended to exist when exchange rates against the dollar were high. This could point to a pretty interesting research question - what levels of inflation and exchange rate against the dollar will signal a banking crisis (or any crisis in general?)
 
 ### Section 3. Research questions
 
