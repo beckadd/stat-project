@@ -22,25 +22,41 @@ africa <- read_csv("../data/african_crises.csv")
 
 ```{r independence}
 
-output <- tibble(country = distinct(africa, country)$country, independence_year = 0, crisis_year = 0)
+output <- tibble(country = distinct(africa, country)$country)
+
 output$independence_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   filter(row_number()==1) %>%
+  ungroup() %>%
   select(year)
+  
 
 output$crisis_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   filter(banking_crisis == "crisis") %>%
   filter(row_number() == 1) %>%
+  ungroup() %>%
   select(year)
 
 output <- output %>%
   mutate(difference = (crisis_year$year - independence_year$year))
 
-output
+ggplot(data = output, mapping = aes(y = difference)) +
+  geom_boxplot()
+
+output %>%
+  summarise(IQR = IQR(difference), median = median(difference))
 ```
+We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years. 
+```{r inflation-crisis-relationship}
+ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis, alpha = 0.5)) +
+  geom_point() + 
+  xlim(-50, 1000)
+
+```
+We see that in general, 
 
 ### Section 3. Research questions
 
