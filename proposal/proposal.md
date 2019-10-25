@@ -8,14 +8,14 @@ Six-Thirty-Eight
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ─────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ───────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -110,6 +110,12 @@ years with systemic crises, with 32.8% of the years recorded having a
 systemic crisis. Out of the 13 African countries in the dataset, only
 South Africa, Angola, and Mauritius had no systemic crises.
 
+Now, we’ll explore an interesting question. Independence movements are
+tricky - while they might achieve democracy and self-governance for a
+country, they often contribute to political and economic stability. For
+each country, we’ll determine how many years after independence a
+country will typically experience it’s next crisis.
+
 ``` r
 output <- tibble(country = distinct(africa, country)$country)
 
@@ -133,7 +139,8 @@ output <- output %>%
   mutate(difference = (crisis_year$year - independence_year$year))
 
 ggplot(data = output, mapping = aes(y = difference)) +
-  geom_boxplot()
+  geom_boxplot() + 
+  labs(title = "What's the typical amount of years between a country achieving independence and its next financial crisis?", y = "Number of Years")
 ```
 
 ![](proposal_files/figure-gfm/independence-1.png)<!-- -->
@@ -153,16 +160,11 @@ banking crisis after they achieve independence is about 30 years, with
 an interquartile range of 11 years. This brings us to an interesting
 question - what values characterize countries that had a long period of
 economic prosperity after independence, and what characterizes countries
-that saw immediate financial
-crises?
+that saw immediate financial crises?
 
-``` r
-ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis, alpha = 0.5)) +
-  geom_point() + 
-  xlim(-50, 100)
-```
-
-![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
+Next, let’s analyze if exchange rate against the dollar and inflation
+rate correlate with economic
+crises.
 
 ``` r
 ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis)) +
@@ -170,7 +172,7 @@ ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, colo
   xlim(-10, 100)
 ```
 
-![](proposal_files/figure-gfm/inflation-crisis-relationship-2.png)<!-- -->
+![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
 
 We see that high levels of inflation often correspond to banking crises
 - but this is not always true. There were many cases of banking crises
