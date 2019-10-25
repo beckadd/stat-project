@@ -14,13 +14,44 @@ library(tidyverse)
 Beck
 
 ### Section 2. Exploratory data analysis
-Isabella and Jerry
 
 ```{r load-data}
 africa <- read_csv("../data/african_crises.csv")
 ```
 
-```{r independence}
+We can create a plot of all the countries included in the African economic dataset and what years data is given for them.
+
+```{r countries-included, warning = F}
+ggplot(data = africa, mapping = aes(x = year)) +
+  geom_histogram(binwidth = 10, fill = "blue", col = "black") +
+  labs(x = "Year", y = "Number of Countries", 
+       title = "Increase in Total Number of African Country Economic 
+       Observations Over Time")
+
+ggplot(data = africa, mapping = aes(x = country, y = year)) +
+  geom_point(size = .75, col = "orange") +
+  coord_flip() +
+  labs (x = "Country", y = "Year", title = "African Economic Data Observed Each
+      Year by Country")
+```
+
+Overall, observations of African economies greatly increased after 1950. However, there are some African countries, such as Egypt and South Africa, whose economies have been monitored for over a century.
+
+Next, we can determine the percentage of systemic crisis years for each country in the Africa dataset.
+
+```{r systemic-crises}
+africa %>%
+  count(country, systemic_crisis) %>%
+  group_by(country) %>%
+  mutate(crisis_proportion = 1- (n/sum(n))) %>%
+  filter(systemic_crisis == 0) %>%
+  select(country, crisis_proportion) %>%
+  arrange(desc(crisis_proportion))
+```
+
+The Central African Republic had the highest proportion of recorded years with systemic crises, with 32.8% of the years recorded having a systemic crisis. Out of the 13 African countries in the dataset, only South Africa, Angola, and Mauritius had no systemic crises.
+
+```{r independence, warning = F}
 
 output <- tibble(country = distinct(africa, country)$country)
 
@@ -49,9 +80,10 @@ ggplot(data = output, mapping = aes(y = difference)) +
 output %>%
   summarise(IQR = IQR(difference), median = median(difference))
 ```
+
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years. This brings us to an interesting question - what values characterize countries that had a long period of economic prosperity after independence, and what characterizes countries that saw immediate financial crises? 
 
-```{r inflation-crisis-relationship}
+```{r inflation-crisis-relationship, warning = F}
 ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis, alpha = 0.5)) +
   geom_point() + 
   xlim(-50, 100)
@@ -61,6 +93,7 @@ ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, colo
   xlim(-10, 100)
 
 ```
+
 We see that high levels of inflation often correspond to banking crises - but this is not always true. There were many cases of banking crises that existed even when inflation was lower than typical. Moreover, banking crises also tended to exist when exchange rates against the dollar were high. This could point to a pretty interesting research question - what levels of inflation and exchange rate against the dollar will signal a banking crisis (or any crisis in general?)
 
 ### Section 3. Research questions

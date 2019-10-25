@@ -8,14 +8,14 @@ Six-Thirty-Eight
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ───────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ──────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ──────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ─────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -24,8 +24,6 @@ library(tidyverse)
 Beck
 
 ### Section 2. Exploratory data analysis
-
-Isabella and Jerry
 
 ``` r
 africa <- read_csv("../data/african_crises.csv")
@@ -48,6 +46,69 @@ africa <- read_csv("../data/african_crises.csv")
     ##   inflation_crises = col_double(),
     ##   banking_crisis = col_character()
     ## )
+
+We can create a plot of all the countries included in the African
+economic dataset and what years data is given for them.
+
+``` r
+ggplot(data = africa, mapping = aes(x = year)) +
+  geom_histogram(binwidth = 10, fill = "blue", col = "black") +
+  labs(x = "Year", y = "Number of Countries", 
+       title = "Increase in Total Number of African Country Economic 
+       Observations Over Time")
+```
+
+![](proposal_files/figure-gfm/countries-included-1.png)<!-- -->
+
+``` r
+ggplot(data = africa, mapping = aes(x = country, y = year)) +
+  geom_point(size = .75, col = "orange") +
+  coord_flip() +
+  labs (x = "Country", y = "Year", title = "African Economic Data Observed Each
+      Year by Country")
+```
+
+![](proposal_files/figure-gfm/countries-included-2.png)<!-- -->
+
+Overall, observations of African economies greatly increased after 1950.
+However, there are some African countries, such as Egypt and South
+Africa, whose economies have been monitored for over a century.
+
+Next, we can determine the percentage of systemic crisis years for each
+country in the Africa dataset.
+
+``` r
+africa %>%
+  count(country, systemic_crisis) %>%
+  group_by(country) %>%
+  mutate(crisis_proportion = 1- (n/sum(n))) %>%
+  filter(systemic_crisis == 0) %>%
+  select(country, crisis_proportion) %>%
+  arrange(desc(crisis_proportion))
+```
+
+    ## # A tibble: 13 x 2
+    ## # Groups:   country [13]
+    ##    country                  crisis_proportion
+    ##    <chr>                                <dbl>
+    ##  1 Central African Republic            0.328 
+    ##  2 Kenya                               0.194 
+    ##  3 Nigeria                             0.167 
+    ##  4 Zimbabwe                            0.167 
+    ##  5 Tunisia                             0.0667
+    ##  6 Ivory Coast                         0.0635
+    ##  7 Zambia                              0.0556
+    ##  8 Algeria                             0.0471
+    ##  9 Egypt                               0.0387
+    ## 10 Morocco                             0.0267
+    ## 11 Angola                              0     
+    ## 12 Mauritius                           0     
+    ## 13 South Africa                        0
+
+The Central African Republic had the highest proportion of recorded
+years with systemic crises, with 32.8% of the years recorded having a
+systemic crisis. Out of the 13 African countries in the dataset, only
+South Africa, Angola, and Mauritius had no systemic crises.
 
 ``` r
 output <- tibble(country = distinct(africa, country)$country)
@@ -101,8 +162,6 @@ ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, colo
   xlim(-50, 100)
 ```
 
-    ## Warning: Removed 25 rows containing missing values (geom_point).
-
 ![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
 
 ``` r
@@ -111,9 +170,8 @@ ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, colo
   xlim(-10, 100)
 ```
 
-    ## Warning: Removed 47 rows containing missing values (geom_point).
-
 ![](proposal_files/figure-gfm/inflation-crisis-relationship-2.png)<!-- -->
+
 We see that high levels of inflation often correspond to banking crises
 - but this is not always true. There were many cases of banking crises
 that existed even when inflation was lower than typical. Moreover,
