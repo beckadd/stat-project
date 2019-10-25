@@ -17,6 +17,15 @@ Beck
 
 ```{r load-data}
 africa <- read_csv("../data/african_crises.csv")
+global <- read_csv("../data/global_crisis_data.csv")
+```
+
+To start, we can visualize the number of years with a banking crisis in African countries as a bar graph.
+
+```{r banking-crisis}
+ggplot(data = africa, mapping = aes(x = banking_crisis)) +
+  geom_bar(fill = "pink") +
+  labs(x = "Banking Crisis", title = "Number of Years with Banking Crises in African Countries")
 ```
 
 We can create a plot of all the countries included in the African economic dataset and what years data is given for them.

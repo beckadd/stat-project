@@ -8,14 +8,14 @@ Six-Thirty-Eight
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ─────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ─────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -46,6 +46,45 @@ africa <- read_csv("../data/african_crises.csv")
     ##   inflation_crises = col_double(),
     ##   banking_crisis = col_character()
     ## )
+
+``` r
+global <- read_csv("../data/global_crisis_data.csv")
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   .default = col_character(),
+    ##   Case = col_double(),
+    ##   Year = col_double(),
+    ##   exch_usd = col_double(),
+    ##   exch_usd_alt1 = col_double(),
+    ##   exch_usd_alt2 = col_double(),
+    ##   exch_usd_alt3 = col_double(),
+    ##   `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors` = col_double()
+    ## )
+
+    ## See spec(...) for full column specifications.
+
+    ## Warning: 891 parsing failures.
+    ##  row      col expected actual                             file
+    ## 1228 exch_usd a double    n/a '../data/global_crisis_data.csv'
+    ## 1229 exch_usd a double    n/a '../data/global_crisis_data.csv'
+    ## 1230 exch_usd a double    n/a '../data/global_crisis_data.csv'
+    ## 1231 exch_usd a double    n/a '../data/global_crisis_data.csv'
+    ## 1232 exch_usd a double    n/a '../data/global_crisis_data.csv'
+    ## .... ........ ........ ...... ................................
+    ## See problems(...) for more details.
+
+To start, we can visualize the number of years with a banking crisis in
+African countries as a bar graph.
+
+``` r
+ggplot(data = africa, mapping = aes(x = banking_crisis)) +
+  geom_bar(fill = "pink") +
+  labs(x = "Banking Crisis", title = "Number of Years with Banking Crises in African Countries")
+```
+
+![](proposal_files/figure-gfm/banking-crisis-1.png)<!-- -->
 
 We can create a plot of all the countries included in the African
 economic dataset and what years data is given for them.
