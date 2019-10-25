@@ -47,34 +47,6 @@ africa <- read_csv("../data/african_crises.csv")
     ##   banking_crisis = col_character()
     ## )
 
-``` r
-global <- read_csv("../data/global_crisis_data.csv")
-```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   .default = col_character(),
-    ##   Case = col_double(),
-    ##   Year = col_double(),
-    ##   exch_usd = col_double(),
-    ##   exch_usd_alt1 = col_double(),
-    ##   exch_usd_alt2 = col_double(),
-    ##   exch_usd_alt3 = col_double(),
-    ##   `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors` = col_double()
-    ## )
-
-    ## See spec(...) for full column specifications.
-
-    ## Warning: 891 parsing failures.
-    ##  row      col expected actual                             file
-    ## 1228 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1229 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1230 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1231 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1232 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## .... ........ ........ ...... ................................
-    ## See problems(...) for more details.
-
 To start, we can visualize the number of years with a banking crisis in
 African countries as a bar graph.
 
@@ -149,9 +121,14 @@ years with systemic crises, with 32.8% of the years recorded having a
 systemic crisis. Out of the 13 African countries in the dataset, only
 South Africa, Angola, and Mauritius had no systemic crises.
 
+Now, we’ll explore an interesting question. Independence movements are
+tricky - while they might achieve democracy and self-governance for a
+country, they often contribute to political and economic stability. For
+each country, we’ll determine how many years after independence a
+country will typically experience it’s next crisis.
+
 ``` r
 output <- tibble(country = distinct(africa, country)$country)
-
 output$independence_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
@@ -159,7 +136,6 @@ output$independence_year <- africa %>%
   ungroup() %>%
   select(year)
   
-
 output$crisis_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
@@ -167,12 +143,11 @@ output$crisis_year <- africa %>%
   filter(row_number() == 1) %>%
   ungroup() %>%
   select(year)
-
 output <- output %>%
   mutate(difference = (crisis_year$year - independence_year$year))
-
 ggplot(data = output, mapping = aes(y = difference)) +
-  geom_boxplot()
+  geom_boxplot() + 
+  labs(title = "What's the typical amount of years between a country achieving independence and its next financial crisis?", y = "Number of Years")
 ```
 
 ![](proposal_files/figure-gfm/independence-1.png)<!-- -->
@@ -192,16 +167,11 @@ banking crisis after they achieve independence is about 30 years, with
 an interquartile range of 11 years. This brings us to an interesting
 question - what values characterize countries that had a long period of
 economic prosperity after independence, and what characterizes countries
-that saw immediate financial
-crises?
+that saw immediate financial crises?
 
-``` r
-ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis, alpha = 0.5)) +
-  geom_point() + 
-  xlim(-50, 100)
-```
-
-![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
+Next, let’s analyze if exchange rate against the dollar and inflation
+rate correlate with economic
+crises.
 
 ``` r
 ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis)) +
@@ -209,7 +179,7 @@ ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, colo
   xlim(-10, 100)
 ```
 
-![](proposal_files/figure-gfm/inflation-crisis-relationship-2.png)<!-- -->
+![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
 
 We see that high levels of inflation often correspond to banking crises
 - but this is not always true. There were many cases of banking crises
@@ -249,7 +219,6 @@ Questions:
 ``` r
 africa <- read_csv("/cloud/project/data/african_crises.csv")
 global <- read_csv("/cloud/project/data/global_crisis_data.csv")
-
 glimpse(africa)
 ```
 
