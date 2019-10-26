@@ -17,14 +17,31 @@ Beck
 
 ```{r load-data}
 africa <- read_csv("../data/african_crises.csv")
+global <- read_csv("../data/global_crisis_data.csv")
+gdps <- read_csv("../data/world_gdp_data.csv")
+
+gdpspiv <- gdps %>%
+  pivot_longer(
+    cols = c(
+      -`Country Name`,
+      -`Country Code`,
+      -`Indicator Name`,
+      -`Indicator Code`),
+    names_to = "year"
+  )
 ```
 
 To start, we can visualize the number of years with a banking crisis in African countries as a bar graph.
 
 ```{r banking-crisis}
+
 ggplot(data = africa, mapping = aes(x = banking_crisis)) +
   geom_bar(fill = "pink") +
-  labs(x = "Banking Crisis", title = "Number of Years with Banking Crises in African Countries")
+  labs(
+    x = "Banking Crisis", 
+    title = "Number of Years with Banking Crises in African Countries"
+    )
+
 ```
 
 We can create a plot of all the countries included in the African economic dataset and what years data is given for them.
@@ -32,14 +49,20 @@ We can create a plot of all the countries included in the African economic datas
 ```{r countries-included, warning = F}
 ggplot(data = africa, mapping = aes(x = year)) +
   geom_histogram(binwidth = 10, fill = "blue", col = "black") +
-  labs(x = "Year", y = "Number of Countries", 
-       title = "Increase in Total Number of African Country Economic 
-       Observations Over Time")
+  labs(
+    x = "Year",
+    y = "Number of Countries", 
+    title = "Increase in Total Number of African
+    Country Economic Observations Over Time"
+    )
 ggplot(data = africa, mapping = aes(x = country, y = year)) +
   geom_point(size = .75, col = "orange") +
   coord_flip() +
-  labs (x = "Country", y = "Year", title = "African Economic Data Observed Each
-      Year by Country")
+  labs(
+  x = "Country",
+  y = "Year",
+  title = "African Economic Data Observed Each Year by Country"
+  )
 ```
 
 Overall, observations of African economies greatly increased after 1950. However, there are some African countries, such as Egypt and South Africa, whose economies have been monitored for over a century.
@@ -80,7 +103,10 @@ output <- output %>%
   mutate(difference = (crisis_year$year - independence_year$year))
 ggplot(data = output, mapping = aes(y = difference)) +
   geom_boxplot() + 
-  labs(title = "What's the typical amount of years between a country achieving independence and its next financial crisis?", y = "Number of Years")
+  labs(
+    title = "What's the typical amount of years between a country 
+    achieving independence and its next financial crisis?",
+    y = "Number of Years")
 output %>%
   summarise(IQR = IQR(difference), median = median(difference))
 ```
@@ -90,7 +116,12 @@ We see that the median amount of years a country will first encounter a banking 
 Next, let's analyze if exchange rate against the dollar and inflation rate correlate with economic crises.
 
 ```{r inflation-crisis-relationship, warning = F}
-ggplot(data = africa, mapping = aes(x = inflation_annual_cpi, y = exch_usd, color = banking_crisis)) +
+africa %>%
+ggplot(
+  aes(
+    x = inflation_annual_cpi,
+    y = exch_usd,
+    color = banking_crisis)) +
   geom_point() + 
   xlim(-10, 100)
 ```
@@ -112,8 +143,9 @@ Questions:
 ### Section 4. Data
 
 ```{r glimpse-africa-data, warning = F, message = F}
-africa <- read_csv("/cloud/project/data/african_crises.csv")
-global <- read_csv("/cloud/project/data/global_crisis_data.csv")
+
 glimpse(africa)
 glimpse(global)
+glimpse(gdps)
+
 ```
