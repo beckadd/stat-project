@@ -11,7 +11,7 @@ library(tidyverse)
 
 ### Section 1. Introduction
 
-Beck
+  For our STA 199 project, we chose to examine the stability and development of the economies of African nations, particularly in the context of colonialism and decolonialism. After we had read an article about Zimbabwe’s crippling inflation crisis (in which the nation completely abandoned paper currencies altogether), we wondered: how has Africa’s history of exploitation and unrest contributed to the continent’s overall economic instability in the modern day, and what factors be correlated with an economic crisis in the continent? Thus, we collected three datasets to answer this question and the questions that precipitated from it. The first of these datasets was an excellently curated “African Economic Banking and Systemic Crises Data” from a Kaggle (https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data/version/1#) and the global economic crisis dataset from which it was derived, created by the Harvard Business School (https://www.hbs.edu/behavioral-finance-and-financial-stability/data/Pages/global.aspx). While these datasets gave insights into instances of “systemic crisis” and exchange rate and CPI information (which indicates relative inflation and debt), they critically omitted the GDP of these nations over time – a fairly modern economic growth metric that we were only able to find being consistently used from 1960 onward. We sourced and cleaned a record of this global GDP data from the World Bank (https://data.worldbank.org/indicator/ny.gdp.mktp.cd), detailing world nations’ GDPs in USD from 1960 to the modern day. We believe that this dataset will be sufficient to detail the impacts of decolonization on African nations’ GDPs (as most African decolonization efforts took place in the mid-to-late 1950s and early 1960s) and provide a working conclusion to our research questions.
 
 ### Section 2. Exploratory data analysis
 
@@ -20,7 +20,7 @@ africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 
-gdpspiv <- gdps %>%
+gdps <- gdps %>%
   pivot_longer(
     cols = c(
       -`Country Name`,
@@ -28,20 +28,23 @@ gdpspiv <- gdps %>%
       -`Indicator Name`,
       -`Indicator Code`),
     names_to = "year"
-  )
+  ) %>%
+  rename(cc3 = `Country Code`, country = `Country Name`, gdp = value)
+
+africangdps <- gdps %>%
+  merge(., africa, by = c("country","cc3","year"))
 ```
 
-To start, we can visualize the number of years with a banking crisis in African countries as a bar graph.
+To start, we can visualize the number of years with a banking crisis in African countries as a bar graph. We can also look at how African GDPs compare to nations in other continents to emphasize why our question of instability is important.
 
 ```{r banking-crisis}
-
-ggplot(data = africa, mapping = aes(x = banking_crisis)) +
+africa %>%
+ggplot(aes(x = banking_crisis)) +
   geom_bar(fill = "pink") +
   labs(
     x = "Banking Crisis", 
     title = "Number of Years with Banking Crises in African Countries"
     )
-
 ```
 
 We can create a plot of all the countries included in the African economic dataset and what years data is given for them.
