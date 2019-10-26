@@ -8,14 +8,14 @@ Six-Thirty-Eight
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ----------------------------------------- tidyverse 1.2.1 --
+    ## -- Attaching packages ---------------------------------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --
 
     ## v ggplot2 3.2.1     v purrr   0.3.3
     ## v tibble  2.1.3     v dplyr   0.8.3
     ## v tidyr   1.0.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.4.0
 
-    ## -- Conflicts -------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ------------------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -130,6 +130,9 @@ gdps <- gdps %>%
 
 africangdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
+
+global <- global %>%
+  select(-`<`)
 ```
 
 To start, we can visualize the number of years with a banking crisis in
@@ -346,7 +349,7 @@ glimpse(global)
 ```
 
     ## Observations: 15,191
-    ## Variables: 27
+    ## Variables: 26
     ## $ Case                                                                                                                                                                                                         <dbl> ...
     ## $ CC3                                                                                                                                                                                                          <chr> ...
     ## $ Country                                                                                                                                                                                                      <chr> ...
@@ -369,7 +372,6 @@ glimpse(global)
     ## $ `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors` <dbl> ...
     ## $ Defaults_External_Notes                                                                                                                                                                                      <chr> ...
     ## $ GDP_Weighted_default                                                                                                                                                                                         <chr> ...
-    ## $ `<`                                                                                                                                                                                                          <chr> ...
     ## $ `Inflation, Annual percentages of average consumer prices`                                                                                                                                                   <chr> ...
     ## $ Independence                                                                                                                                                                                                 <chr> ...
     ## $ `Currency Crises`                                                                                                                                                                                            <chr> ...

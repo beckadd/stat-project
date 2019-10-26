@@ -33,6 +33,9 @@ gdps <- gdps %>%
 
 africangdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
+
+global <- global %>%
+  select(-`<`)
 ```
 
 To start, we can visualize the number of years with a banking crisis in African countries as a bar graph. We can also look at how African GDPs compare to nations in other continents to emphasize why our question of instability is important.
