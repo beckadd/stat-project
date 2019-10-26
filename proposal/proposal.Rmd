@@ -50,7 +50,7 @@ ggplot(aes(x = banking_crisis)) +
     )
 ```
 
-We can create a plot of all the countries included in the African economic dataset and what years data is given for them.
+We can also visualize what years data for economies in African countries is given.
 
 ```{r countries-included, warning = F}
 ggplot(data = africa, mapping = aes(x = year)) +
@@ -120,16 +120,18 @@ output %>%
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years. This brings us to an interesting question - what values characterize countries that had a long period of economic prosperity after independence, and what characterizes countries that saw immediate financial crises? 
 
 Next, we'll do a univariate visualization of what the exchange rate variable looks like:
+
 ```{r exchange-rate-visualize}
 ggplot(data = africa, mapping = aes(x = exch_usd)) +
-  geom_histogram(bins = 10)
+  geom_histogram(bins = 10) +
+  labs(x = "Exchange Rate in USD", y = "Count", title = "Distribution of Data for Exchange Rates in USD")
 
 summary_stats <- africa %>%
   summarise(median = median(exch_usd), std = sd(exch_usd))
 ```
 We see that the median exchange rate against the US dollar is `r summary_stats$median` and the standard deviation is `r summary_stats$std`. The distribution is right-skewed. 
 
-Next, let's analyze if exchange rate against the dollar and inflation rate correlate with economic crises.
+Next, let's analyze if exchange rate against the dollar and inflation rate correlate with banking crises.
 
 ```{r inflation-crisis-relationship, warning = F}
 africa %>%
@@ -139,7 +141,8 @@ ggplot(
     y = exch_usd,
     color = banking_crisis)) +
   geom_point() + 
-  xlim(-10, 100)
+  xlim(-10, 100) +
+  labs(x = "Annual CPI Inflation Rate", y = "Exchange Rate in USD", title = "Can Banking Crises be Predicted by Annual CPI Inflation Rate and Exchange Rate in USD?")
 ```
 
 We see that high levels of inflation often correspond to banking crises, but this is not always true. There were many cases of banking crises that existed even when inflation was lower than typical. Moreover, banking crises also tended to exist when exchange rates against the dollar were high. This could point to a pretty interesting research question: what levels of inflation and exchange rate against the dollar will signal a banking crisis (or any crisis in general?)
