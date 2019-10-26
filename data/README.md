@@ -38,7 +38,7 @@ https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data/v
   
   inflation_crises (dbl) : Boolean indicating whether an inflation crisis occurred during the year (an inflation crisis, also known as hyperinflation, occurs when a nation's inflation rate begins accelerating faster than economic growth, causing currency devaluation). 0 is False, 1 is True.
   
-  banking_crises (dbl) : Boolean indicating whether a banking crisis occurred during the year (a banking crisis is one in which a nation's citizens no longer trust a bank to hold funds, causing widespread bank runs and significant loss of private capital). 0 is False, 1 is True.
+  banking_crises (chr) : Boolean indicating whether a banking crisis occurred during the year (a banking crisis is one in which a nation's citizens no longer trust a bank to hold funds, causing widespread bank runs and significant loss of private capital). "no_crisis" is False, "crisis" is True.
   
 #### <b> global </b>
 

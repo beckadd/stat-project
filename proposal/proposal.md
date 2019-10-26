@@ -332,6 +332,16 @@ predictor variables `independence` and `year`. We may also incorporate
 immediately colonized or immediately acquiring a new colony suffered
 economic instability, perhaps as a result of the event.
 
+Hypothesis: It is difficult to say, but we expect that most European
+economies will benefit from colonization, and most African economies
+will as well. However, we expect extenuating circumstances in which a
+European economy is detrimented by taking on a colony and a colony is
+likewise detrimented by an oppressive colonizer. Similarly, we believe
+that most European economies will detriment from releasing their
+colonies, and most African economies will benefit from the release, as
+many colonies were given economic stability by agreements facilitated
+under the United Nations concerning decolonization.
+
 2.  Was an economic crisis more likely following n years after
     decolonization?
 
@@ -346,6 +356,11 @@ variables from the `africa` dataset as response variables for a new
 variable `difference`, which takes the difference between the year of
 the first crisis and the year of independence. To understand other
 economic variables that contribute to stability, see below.
+
+Hypothesis: We believe that systemic crises will not be common following
+decolonization, but that banking and inflation crises may be fairly
+common, due to the newness of domestic currencies not based on the
+colonizer’s banking trust.
 
 3.  What factors are most associated with a systemic crisis in Africa?
     How can identify a systemic crisis in the dataset? How do African
@@ -362,6 +377,12 @@ the model. Our goal is to see what variables predict systemic crises in
 developed nations and how these variables differ (either whether they
 are indeed the same variables or the r-squared impact they have on the
 model) from the variables in the African-only model.
+
+Hypothesis: Systemic crises will be most likely to occur following
+independence and a decreasing exchange rate (indicating currency
+destabilization) and an increasing CPI (also indicating currency
+destabilization). Also, defaulting on debts, particularly external
+debts, will be a significant indicator of upcoming systemic crisis.
 
 ### Section 4. Data
 
