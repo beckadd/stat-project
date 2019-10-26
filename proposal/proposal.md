@@ -223,8 +223,8 @@ South Africa, Angola, and Mauritius had no systemic crises.
 
 Now, we’ll explore an interesting question. Independence movements are
 tricky - while they might achieve democracy and self-governance for a
-country, they often contribute to political and economic stability. For
-each country, we’ll determine how many years after independence a
+country, they often contribute to political and economic instability.
+For each country, we’ll determine how many years after independence a
 country will typically experience it’s next crisis.
 
 ``` r
@@ -272,6 +272,24 @@ question - what values characterize countries that had a long period of
 economic prosperity after independence, and what characterizes countries
 that saw immediate financial crises?
 
+Next, we’ll do a univariate visualization of what the exchange rate
+variable looks like:
+
+``` r
+ggplot(data = africa, mapping = aes(x = exch_usd)) +
+  geom_histogram(bins = 10)
+```
+
+![](proposal_files/figure-gfm/exchange-rate-visualize-1.png)<!-- -->
+
+``` r
+summary_stats <- africa %>%
+  summarise(median = median(exch_usd), std = sd(exch_usd))
+```
+
+We see that the median exchange rate against the US dollar is 0.8684 and
+the standard deviation is 111.47538. The distribution is right-skewed.
+
 Next, let’s analyze if exchange rate against the dollar and inflation
 rate correlate with economic crises.
 
@@ -288,12 +306,12 @@ ggplot(
 
 ![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
 
-We see that high levels of inflation often correspond to banking crises
-- but this is not always true. There were many cases of banking crises
+We see that high levels of inflation often correspond to banking crises,
+but this is not always true. There were many cases of banking crises
 that existed even when inflation was lower than typical. Moreover,
 banking crises also tended to exist when exchange rates against the
 dollar were high. This could point to a pretty interesting research
-question - what levels of inflation and exchange rate against the dollar
+question: what levels of inflation and exchange rate against the dollar
 will signal a banking crisis (or any crisis in general?)
 
 ### Section 3. Research questions
@@ -305,21 +323,45 @@ Questions:
     European/African economies change with decolonization of the African
     continent?
 
-<!-- end list -->
-
-  - Danger: there are a lot of factors that affect a European economies,
-    and losing a colony might not be that impactful. Concentrate on
-    African economies in this analysis.
-
-<!-- end list -->
+To answer this question, we will look at changes in GDP immediately
+following colonization and decolonization for both the colonizing
+country and the colonized country. Naturally, we will be using `gdp`
+from our gdps dataframe (see environment) as a response variable for the
+predictor variables `independence` and `year`. We may also incorporate
+`Systemic Crisis` from the `global` dataframe to see whether a nation
+immediately colonized or immediately acquiring a new colony suffered
+economic instability, perhaps as a result of the event.
 
 2.  Was an economic crisis more likely following n years after
     decolonization?
 
+To answer this question, we will examine the number of years it takes
+for a country to enter a systemic, economic, banking, or inflation
+crisis following independence, and which of these crises is more common
+for fledgling independent nations. For countries who have not faced
+crisis following decolonization, we will observe what factors of their
+economy contribute to their relative stability. As a preliminary data
+manipulation in Section 2 has shown, we will be using the `crisis`
+variables from the `africa` dataset as response variables for a new
+variable `difference`, which takes the difference between the year of
+the first crisis and the year of independence. To understand other
+economic variables that contribute to stability, see below.
+
 3.  What factors are most associated with a systemic crisis in Africa?
-    How can identify a systemic crisis in the dataset? What defines a
-    systemic crisis, and how do African systemic crises compare to other
-    nations’ crises?
+    How can identify a systemic crisis in the dataset? How do African
+    systemic crises compare to other nations’ crises?
+
+To answer this question, we will make a regression model or simulation
+relating systemic crises to the various variables in our dataset, and
+optimize for the highest adjusted r-squared value. Thus, `Systemic
+Crises` from the `global` dataset filtered for African nations will be a
+response variable to changes in as-of-yet unknown predictor variables
+(our goal is to find these variables). After discovering these variables
+for African nations, we will filter out African nations and reoptimize
+the model. Our goal is to see what variables predict systemic crises in
+developed nations and how these variables differ (either whether they
+are indeed the same variables or the r-squared impact they have on the
+model) from the variables in the African-only model.
 
 ### Section 4. Data
 
