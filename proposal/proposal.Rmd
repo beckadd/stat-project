@@ -167,5 +167,6 @@ To answer this question, we will make a regression model or simulation relating 
 glimpse(africa)
 glimpse(global)
 glimpse(gdps)
+glimpse(african_gdps)
 
 ```
