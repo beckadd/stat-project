@@ -284,9 +284,8 @@ summary_stats <- africa %>%
   summarise(median = median(exch_usd), std = sd(exch_usd))
 ```
 
-We see that the median exchange rate against the US dollar is `{r}
-summary_stats$median` and the standard deviation is `{r}
-summary_stats$std`. The distribution is right-skewed.
+We see that the median exchange rate against the US dollar is 0.8684 and
+the standard deviation is 111.47538. The distribution is right-skewed.
 
 Next, let’s analyze if exchange rate against the dollar and inflation
 rate correlate with economic crises.
@@ -304,12 +303,12 @@ ggplot(
 
 ![](proposal_files/figure-gfm/inflation-crisis-relationship-1.png)<!-- -->
 
-We see that high levels of inflation often correspond to banking crises
-- but this is not always true. There were many cases of banking crises
+We see that high levels of inflation often correspond to banking crises,
+but this is not always true. There were many cases of banking crises
 that existed even when inflation was lower than typical. Moreover,
 banking crises also tended to exist when exchange rates against the
 dollar were high. This could point to a pretty interesting research
-question - what levels of inflation and exchange rate against the dollar
+question: what levels of inflation and exchange rate against the dollar
 will signal a banking crisis (or any crisis in general?)
 
 ### Section 3. Research questions
@@ -321,13 +320,9 @@ Questions:
     European/African economies change with decolonization of the African
     continent?
 
-<!-- end list -->
-
-  - Danger: there are a lot of factors that affect a European economies,
-    and losing a colony might not be that impactful. Concentrate on
-    African economies in this analysis.
-
-<!-- end list -->
+Note: there are a lot of factors that affect a European economies, and
+losing a colony might not be that impactful. Concentrate on African
+economies in this analysis.
 
 2.  Was an economic crisis more likely following n years after
     decolonization?
