@@ -1,8 +1,6 @@
 # <b> data </b>
-\n
-\n
-\n
-#### <b> african_crises.csv </b>
+
+#### <b> africa </b>
 
 The african_crises dataset, derived from the global_crisis_data dataset,
 examines all of the nations of Africa from 1860 to 2014, and gives data that
@@ -42,11 +40,7 @@ https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data/v
   
   banking_crises (dbl) : Boolean indicating whether a banking crisis occurred during the year (a banking crisis is one in which a nation's citizens no longer trust a bank to hold funds, causing widespread bank runs and significant loss of private capital). 0 is False, 1 is True.
   
-\n
-\n
-\n
-
-#### <b> global_crisis_data.csv </b>
+#### <b> global </b>
 
 The dataset from which african_crises is based. It provides data on more than 70 countries from 1800 to 2016. It has a total of 15576 observations with 27 variables. Many of these variables are preserved in the african_crises dataset. The codebook for this dataset has been loosely adapted from the HBS dataset documentation They are described here:
 
@@ -87,7 +81,6 @@ https://www.hbs.edu/behavioral-finance-and-financial-stability/data/Pages/global
   
   exch_sources (chr) : data source for exchange rate information.
   
-  
   Domestic_Debt_In_Default (dbl) : Boolean indicating whether the nation defaulted on its domestic debt during the year measured. 0 is False, 1 is True.
   
   Domestic_Debt_Notes/Source (chr) : Notes on domestic debt variable.
@@ -108,11 +101,7 @@ https://www.hbs.edu/behavioral-finance-and-financial-stability/data/Pages/global
   
   Inflation Crises (dbl) : Boolean indicating whether an inflation crisis occurred during the year (an inflation crisis, also known as hyperinflation, occurs when a nation's inflation rate begins accelerating faster than economic growth, causing currency devaluation). 0 is False, 1 is True.
   
-  \n
-  \n
-  \n
-  
-#### <b> world_gdp_data.csv </b>
+#### <b> gdps </b>
 
 A comprehensive record of the GDPs of the world's nations from 1960 to 2018. Provided by the World Bank, this dataset has been cleaned and rearranged for the purposes of this project. The codebook for the cleaned data is below. 
 
@@ -131,8 +120,9 @@ https://data.worldbank.org/indicator/ny.gdp.mktp.cd
   
   gdp (dbl) : Country's GDP at year of collection.
   
-  
+#### <b> african_gdps </b>
 
+A merge between the gdps dataset and the africa dataset by year, country code and country name. It contains all of the variables of the gdps dataset, filtered for only nations in Africa.
   
   
 

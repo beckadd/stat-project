@@ -31,7 +31,7 @@ gdps <- gdps %>%
   ) %>%
   rename(cc3 = `Country Code`, country = `Country Name`, gdp = value)
 
-africangdps <- gdps %>%
+african_gdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
 
 global <- global %>%
