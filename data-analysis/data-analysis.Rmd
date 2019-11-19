@@ -6,3 +6,65 @@ output: github_document
 ---
 
 Your data analysis goes here!
+
+```{r load-packages}
+library(tidyverse)
+```
+
+```{r load-data}
+africa <- read_csv("../data/african_crises.csv")
+global <- read_csv("../data/global_crisis_data.csv")
+gdps <- read_csv("../data/world_gdp_data.csv")
+
+gdps <- gdps %>%
+  pivot_longer(
+    cols = c(
+      -`Country Name`,
+      -`Country Code`,
+      -`Indicator Name`,
+      -`Indicator Code`),
+    names_to = "year"
+  ) %>%
+  rename(cc3 = `Country Code`, country = `Country Name`, gdp = value)
+
+african_gdps <- gdps %>%
+  merge(., africa, by = c("country","cc3","year"))
+
+```
+
+```{r data-cleaning}
+
+global <- global[-1,] %>%
+  select(-`<`) %>%
+  rename(
+    case = Case,
+    cc3 = CC3,
+    country = Country,
+    year = Year,
+    banking_crisis = `Banking Crisis`,
+    systemic_crisis = `Systemic Crisis`,
+    gold_standard = `Gold Standard`,
+    nat_currency = `national currency`,
+    sov_ext_debt = 
+    `SOVEREIGN EXTERNAL DEBT 1: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom and post-1975 defaults on Official External Creditors`,
+    sov_ext_debt_post1975 = `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors`,
+    exc_primary = `exch_primary source code`,
+    domest_debt_default = `Domestic_Debt_In_Default`,
+    domest_debt_notes = `Domestic_Debt_ Notes/Sources`,
+    default_ext_notes = `Defaults_External_Notes`,
+    gdp_weighted_default = `GDP_Weighted_default`,
+    inflat_aver_consumer_prices = `Inflation, Annual percentages of average consumer prices`,
+    curr_crises = `Currency Crises`,
+    independence = `Independence`,
+    inflat_crises = `Inflation Crises`
+  )
+
+gdps <- gdps %>%
+  rename(
+    indicator_code = `Indicator Code`,
+    indicator_name = `Indicator Name`
+  )
+
+
+
+```
