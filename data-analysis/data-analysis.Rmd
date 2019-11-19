@@ -15,6 +15,10 @@ library(tidyverse)
 africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
+```
+
+```{r data-cleaning}
+
 
 gdps <- gdps %>%
   pivot_longer(
@@ -25,14 +29,16 @@ gdps <- gdps %>%
       -`Indicator Code`),
     names_to = "year"
   ) %>%
-  rename(cc3 = `Country Code`, country = `Country Name`, gdp = value)
+  rename(
+    cc3 = `Country Code`,
+    indicator_code = `Indicator Code`,
+    indicator_name = `Indicator Name`,
+    country = `Country Name`,
+    gdp = value
+    )
 
 african_gdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
-
-```
-
-```{r data-cleaning}
 
 global <- global[-1,] %>%
   select(-`<`) %>%
@@ -57,14 +63,32 @@ global <- global[-1,] %>%
     curr_crises = `Currency Crises`,
     independence = `Independence`,
     inflat_crises = `Inflation Crises`
+) %>%
+  mutate(
+    banking_crisis = as.logical(as.numeric(
+      banking_crisis
+      )),
+    systemic_crisis = as.logical(as.numeric(
+      systemic_crisis
+    )),
+    gold_standard = as.logical(as.numeric(
+      gold_standard
+    )),
+    domest_debt_default = as.logical(as.numeric(
+      domest_debt_default
+    )),
+    independence = as.logical(as.numeric(
+      independence
+    )),
+    curr_crises = as.logical(as.numeric(
+      curr_crises
+    )),
+    inflat_crises = as.logical(as.numeric(
+      inflat_crises
+    ))
   )
-
-gdps <- gdps %>%
-  rename(
-    indicator_code = `Indicator Code`,
-    indicator_name = `Indicator Name`
-  )
-
 
 
 ```
+
+
