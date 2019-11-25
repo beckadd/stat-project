@@ -1,7 +1,7 @@
 ---
-title: "PROJECT TITLE"
-author: "NAME HERE"
-date: "TODAY'S DATE"
+title: "An Analysis of African Systemic Crises"
+author: "Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop"
+date: "12/3/2019"
 output: github_document
 ---
 
@@ -17,9 +17,8 @@ global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 ```
 
+Our analysis begins with two datasets: our original African economic crises dataset, which contains numerical variables like inflation rate, exchange rate against the US dollar, and debt vs. GDP ratio. Another helpful variable to analyze would be each country's GDP, so we downloaded world GDP data from the World Bank, and joined this data with our Africa dataset.
 ```{r data-cleaning}
-
-
 gdps <- gdps %>%
   pivot_longer(
     cols = c(
@@ -87,8 +86,7 @@ global <- global[-1,] %>%
       inflat_crises
     ))
   )
-
-
 ```
+
 
 
