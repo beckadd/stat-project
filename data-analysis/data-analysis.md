@@ -3,10 +3,12 @@ An Analysis of African Systemic Crises
 Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 12/3/2019
 
-Your data analysis goes
-    here\!
+Your data analysis goes here\!
 
 ``` r
+#install.packages("countrycode") - already installed
+#install.packages("infer")
+library(infer)
 library(tidyverse)
 ```
 
@@ -20,6 +22,10 @@ library(tidyverse)
     ## ── Conflicts ───────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
+
+``` r
+library(countrycode)
+```
 
 ``` r
 africa <- read_csv("../data/african_crises.csv")
@@ -171,3 +177,135 @@ global <- global[-1,] %>%
     ## Warning: NAs introduced by coercion
     
     ## Warning: NAs introduced by coercion
+
+## Question 2: Hypothesis Testing
+
+#### Was an economic crisis more likely following n years after decolonization?
+
+Consider the following: for each country, we’ll determine how many years
+after independence a country will typically experience its next crisis.
+
+``` r
+output <- tibble(country = distinct(africa, country)$country)
+output$independence_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(row_number()==1) %>%
+  ungroup() %>%
+  select(year)
+  
+output$crisis_year <- africa %>%
+  filter(independence == 1) %>%
+  group_by(country) %>%
+  filter(banking_crisis == "crisis") %>%
+  filter(row_number() == 1) %>%
+  ungroup() %>%
+  select(year)
+output <- output %>%
+  mutate(difference = (crisis_year$year - independence_year$year))
+ggplot(data = output, mapping = aes(y = difference)) +
+  geom_boxplot() + 
+  labs(
+    title = "What's the typical amount of years between a country 
+    achieving independence and its next financial crisis?",
+    y = "Number of Years")
+```
+
+![](data-analysis_files/figure-gfm/independence-1.png)<!-- -->
+
+``` r
+output %>%
+  summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
+```
+
+    ## # A tibble: 1 x 3
+    ##     IQR median  mean
+    ##   <dbl>  <dbl> <dbl>
+    ## 1    11     30  31.3
+
+We see that the median amount of years a country will first encounter a
+banking crisis after they achieve independence is about 30 years, with
+an interquartile range of 11 years and a mean of 31.3 years.
+
+Importantly, we want to determine if the act of declaring independence
+quickens the onset of a systemic crisis, i.e. the number of years after
+independence for a country’s next crisis is less than the average number
+of years to a country’s next crisis. This is a hypothesis test for
+independence.
+
+Now, note that in general, the number of years between a crisis is X
+years - say, 28 years (actually calculate this).. PROBLEM: So, how do we
+calculate the average number of years to a country’s next crisis. Do we
+just calculate each the number of years between every two crises,
+average them out, and halve them to get an average number of years to a
+country’s next
+crisis?
+
+#### Is there a difference between the GDP of African countries vs European countries in 2014?
+
+And if so, what would be a confidence interval for an estimate of the
+difference in GDP?
+
+``` r
+gdps <- gdps %>%
+  mutate(continent = countrycode(cc3, 'iso3c', 'continent')) %>%
+  filter(continent %in% c('Africa', 'Europe'))
+```
+
+    ## Warning in countrycode(cc3, "iso3c", "continent"): Some values were not matched unambiguously: ARB, CEB, CHI, CSS, EAP, EAR, EAS, ECA, ECS, EMU, EUU, FCS, HIC, HPC, IBD, IBT, IDA, IDB, IDX, INX, LAC, LCN, LDC, LIC, LMC, LMY, LTE, MEA, MIC, MNA, NAC, OED, OSS, PRE, PSS, PST, SAS, SSA, SSF, SST, TEA, TEC, TLA, TMN, TSA, TSS, UMC, WLD, XKX
+
+``` r
+means <- gdps %>%
+  group_by(continent) %>%
+  drop_na(gdp) %>%
+  summarise(mean = mean(gdp))
+means
+```
+
+    ## # A tibble: 2 x 2
+    ##   continent          mean
+    ##   <chr>             <dbl>
+    ## 1 Africa     15834936111.
+    ## 2 Europe    272371340444.
+
+``` r
+means %>% nth(2) %>% nth(2) - means %>% nth(2) %>% nth(1)
+```
+
+    ## [1] 256536404333
+
+That’s a $257746064282 difference in GDP.
+
+``` r
+set.seed(1)
+
+
+null_dist <- gdps %>%
+  specify(response = gdp, explanatory = continent) %>%
+  hypothesize(null = "independence") %>%
+  generate(1000, type = "permute") %>%
+  calculate(stat = "diff in medians", 
+            order = c("Europe", "Africa"))
+```
+
+    ## Warning: Removed 1336 rows containing missing values.
+
+``` r
+get_p_value(null_dist, obs_stat = 257746064282, direction = "two_sided")
+```
+
+    ## # A tibble: 1 x 1
+    ##   p_value
+    ##     <dbl>
+    ## 1       0
+
+P-value is 0.
+
+Then, we’d calculate the confidence interval, but that’s not too
+hard.
+
+#### Is there a difference between GDP of North African and sub-Saharan African countries?
+
+1.  Label the countries
+2.  Calculate GDP diff.
+3.  Do hypothesis testing.
