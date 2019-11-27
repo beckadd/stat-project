@@ -227,82 +227,60 @@ We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
 an interquartile range of 11 years and a mean of 31.3 years.
 
-Importantly, we want to determine if the act of declaring independence
-quickens the onset of a systemic crisis, i.e. the number of years after
-independence for a country’s next crisis is less than the average number
-of years to a country’s next crisis. This is a hypothesis test for
-independence.
-
-Now, note that in general, the number of years between a crisis is X
-years - say, 28 years (actually calculate this).. PROBLEM: So, how do we
-calculate the average number of years to a country’s next crisis. Do we
-just calculate each the number of years between every two crises,
-average them out, and halve them to get an average number of years to a
-country’s next
-crisis?
-
-#### Is there a difference between the GDP of African countries vs European countries in 2014?
-
-And if so, what would be a confidence interval for an estimate of the
-difference in GDP?
+We’re really interested in the economic stability of independent
+vs. colonized African countries. In particular, we’re wondering if
+post-independence African countries see a higher proportion of systemic
+crises (per year) compared to before independence. Let’s examine it:
 
 ``` r
-gdps <- gdps %>%
-  mutate(continent = countrycode(cc3, 'iso3c', 'continent')) %>%
-  filter(continent %in% c('Africa', 'Europe'))
+crisis_prop <- africa %>%
+  group_by(country, independence) %>%
+  summarise(crisis_prop = sum(systemic_crisis)/n())
+crisis_prop
 ```
 
-    ## Warning in countrycode(cc3, "iso3c", "continent"): Some values were not matched unambiguously: ARB, CEB, CHI, CSS, EAP, EAR, EAS, ECA, ECS, EMU, EUU, FCS, HIC, HPC, IBD, IBT, IDA, IDB, IDX, INX, LAC, LCN, LDC, LIC, LMC, LMY, LTE, MEA, MIC, MNA, NAC, OED, OSS, PRE, PSS, PST, SAS, SSA, SSF, SST, TEA, TEC, TLA, TMN, TSA, TSS, UMC, WLD, XKX
+    ## # A tibble: 25 x 3
+    ## # Groups:   country [13]
+    ##    country                  independence crisis_prop
+    ##    <chr>                           <dbl>       <dbl>
+    ##  1 Algeria                             0      0.0263
+    ##  2 Algeria                             1      0.0638
+    ##  3 Angola                              0      0     
+    ##  4 Angola                              1      0     
+    ##  5 Central African Republic            0      0     
+    ##  6 Central African Republic            1      0.345 
+    ##  7 Egypt                               1      0.0387
+    ##  8 Ivory Coast                         0      0     
+    ##  9 Ivory Coast                         1      0.0727
+    ## 10 Kenya                               0      0     
+    ## # … with 15 more rows
 
 ``` r
-means <- gdps %>%
-  group_by(continent) %>%
-  drop_na(gdp) %>%
-  summarise(mean = mean(gdp))
-means
+overall_crisis_prop <- africa %>%
+  group_by(independence) %>%
+  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+overall_crisis_prop
 ```
 
     ## # A tibble: 2 x 2
-    ##   continent          mean
-    ##   <chr>             <dbl>
-    ## 1 Africa     15834936111.
-    ## 2 Europe    272371340444.
+    ##   independence overall_crisis_prop
+    ##          <dbl>               <dbl>
+    ## 1            0             0.00422
+    ## 2            1             0.0985
 
-``` r
-means %>% nth(2) %>% nth(2) - means %>% nth(2) %>% nth(1)
-```
+Based on our sample, we see that on average, there is a 0.42% chance of
+a systemic crisis occurring in any given year for a non-independent
+country, while there is a 9.85% chance of a systemic crisis occurring in
+any given year for a independent country.
 
-    ## [1] 256536404333
-
-That’s a $257746064282 difference in GDP.
-
-``` r
-set.seed(1)
-
-
-null_dist <- gdps %>%
-  specify(response = gdp, explanatory = continent) %>%
-  hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
-  calculate(stat = "diff in medians", 
-            order = c("Europe", "Africa"))
-```
-
-    ## Warning: Removed 1336 rows containing missing values.
-
-``` r
-get_p_value(null_dist, obs_stat = 257746064282, direction = "two_sided")
-```
-
-    ## # A tibble: 1 x 1
-    ##   p_value
-    ##     <dbl>
-    ## 1       0
-
-P-value is 0.
-
-Then, we’d calculate the confidence interval, but that’s not too
-hard.
+We’d like to conduct a hypothesis test to see if there is a difference
+in proportions of systemic crises between independent and
+non-independent countries across all African countries. Our null
+hypothesis is that the proportion of systemic crises between independent
+and non-independent African countries is the same. Our alternative
+hypothesis is that the proportion of systemic crises between independent
+and non-independent African countries is
+different.
 
 #### Is there a difference between GDP of North African and sub-Saharan African countries?
 
