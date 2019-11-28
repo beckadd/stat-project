@@ -91,11 +91,7 @@ global <- global[-1,] %>%
     ))
   )
 ```
-Factor systemic_crisis to be a categorical variable:
-```{r systemic-categorical}
-africa <- africa %>%
-  mutate(systemic_crisis = factor(systemic_crisis))
-```
+
 ## Question 2: Hypothesis Testing
 
 #### Was an economic crisis more likely following n years after decolonization?
@@ -148,6 +144,14 @@ Based on our sample, we see that on average, there is a 0.42% chance of a system
 We'd like to conduct a hypothesis test to see if there is a difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
 
 Since we're testing for independence, we'll use permute. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer.
+
+Before we run the hypothesis test, we need to quickly factor systemic_crisis to be a categorical variable:
+```{r systemic-categorical}
+africa <- africa %>%
+  mutate(systemic_crisis = factor(systemic_crisis)) %>%
+  mutate(independence = factor(independence))
+```
+
 ```{r crisis-prop-diff}
 null_dist <- africa %>%
   specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
@@ -155,9 +159,11 @@ null_dist <- africa %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
+visualize(null_dist)
 get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
 ```
 
+Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in the proportion of systemic crises between non-independent and independent African countries.
 
 
 #### Is there a difference between GDP of North African and sub-Saharan African countries?

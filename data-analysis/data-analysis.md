@@ -271,16 +271,57 @@ overall_crisis_prop
 Based on our sample, we see that on average, there is a 0.42% chance of
 a systemic crisis occurring in any given year for a non-independent
 country, while there is a 9.85% chance of a systemic crisis occurring in
-any given year for a independent country.
+any given year for a independent country. The difference in proportions
+is 0.094320737.
 
 We’d like to conduct a hypothesis test to see if there is a difference
 in proportions of systemic crises between independent and
 non-independent countries across all African countries. Our null
 hypothesis is that the proportion of systemic crises between independent
-and non-independent African countries is the same. Our alternative
-hypothesis is that the proportion of systemic crises between independent
-and non-independent African countries is
-different.
+and non-independent African countries is the same; the observed
+difference is due to chance Our alternative hypothesis is that the
+proportion of systemic crises between independent and non-independent
+African countries is different.
+
+Since we’re testing for independence, we’ll use permute. We’ll modify
+our dataset slightly by factoring success into a categorical variable so
+that it’ll work nicely with infer.
+
+Before we run the hypothesis test, we need to quickly factor
+systemic\_crisis to be a categorical variable:
+
+``` r
+africa <- africa %>%
+  mutate(systemic_crisis = factor(systemic_crisis)) %>%
+  mutate(independence = factor(independence))
+```
+
+``` r
+null_dist <- africa %>%
+  specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
+  hypothesize(null = "independence") %>%
+  generate(1000, type = "permute") %>%
+  calculate(stat = "diff in props", 
+            order = c("1", "0"))
+visualize(null_dist)
+```
+
+![](data-analysis_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
+
+``` r
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
+```
+
+    ## # A tibble: 1 x 1
+    ##   p_value
+    ##     <dbl>
+    ## 1       0
+
+Since our p-value of 0 is less than our significance level of 0.05, we
+reject the null hypothesis. The data provides convincing evidence that
+there is a difference in the proportion of systemic crises between
+non-independent and independent African
+countries.
 
 #### Is there a difference between GDP of North African and sub-Saharan African countries?
 
