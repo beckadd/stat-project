@@ -291,13 +291,13 @@ Before we run the hypothesis test, we need to quickly factor
 systemic\_crisis to be a categorical variable:
 
 ``` r
-africa <- africa %>%
+fct_africa <- africa %>%
   mutate(systemic_crisis = factor(systemic_crisis)) %>%
   mutate(independence = factor(independence))
 ```
 
 ``` r
-null_dist <- africa %>%
+null_dist <- fct_africa %>%
   specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
   hypothesize(null = "independence") %>%
   generate(1000, type = "permute") %>%
@@ -349,17 +349,90 @@ africa <- africa %>%
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
   ))
+african_gdps <- african_gdps %>%
+  mutate(region = case_when(
+    country == "Algeria" ~ "n",
+    country == "Angola" ~ "s",
+    country == "Central African Republic" ~ "s",
+    country == "Egypt" ~ "n",
+    country == "Ivory Coast" ~ "s",
+    country == "Kenya" ~ "s",
+    country == "Mauritius" ~ "s",
+    country == "Morocco" ~ "n",
+    country == "Nigeria" ~ "s",
+    country == "South Africa" ~ "s",
+    country == "Tunisia" ~ "n",
+    country == "Zambia" ~ "s",
+    country == "Zimbabwe" ~ "s"
+  ))
 ```
 
-Our research question asks: is there a difference in GDP between all
-North African and sub-Saharan countries?
+Let’s calculate the mean GDP and proportion of systemic crises for North
+African and sub-Saharan countries.
 
-Our null hypothesis is that the proportion of systemic crises between
-independent and non-independent African countries is the same; the
-observed difference is due to chance Our alternative hypothesis is that
-the proportion of systemic crises between independent and
-non-independent African countries is different.
+``` r
+africa %>%
+  group_by(region) %>%
+  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+```
 
-1.  Label the countries
-2.  Calculate GDP diff.
-3.  Do hypothesis testing.
+    ## # A tibble: 2 x 2
+    ##   region overall_crisis_prop
+    ##   <chr>                <dbl>
+    ## 1 n                   0.0436
+    ## 2 s                   0.0972
+
+The proportion of systemic crises for North African countries is 0.0436;
+the proportion of systemic crises for sub-Saharan countries is 0.0971.
+The difference is 0.0535702.
+
+When calculating GDP by region, we’ll use 2014 GDP data since it’s
+recent and available for all 13 African countries in our dataset.
+
+``` r
+african_gdps %>%
+  filter(year == 2014) %>%
+  group_by(region) %>%
+  summarise(avg_gdp = mean(gdp))
+```
+
+    ## # A tibble: 2 x 2
+    ##   region       avg_gdp
+    ##   <chr>          <dbl>
+    ## 1 n      123841108696 
+    ## 2 s      136252986316.
+
+The average GDP for North African countries is $123,841,108,696; the
+average GDP for sub-Saharan countries is $136,252,986,316. The
+difference is $12,411,877,620.
+
+The first research question we’ll ask is: is there a difference in GDP
+between North African and sub-Saharan countries?
+
+Our null hypothesis is that the GDP of North African and sub-Saharan
+countries is the same; the observed difference is due to chance Our
+alternative hypothesis is that the proportion of systemic crises between
+independent and non-independent African countries is different.
+
+Since we’re testing for independence, we’ll use permute.
+
+``` r
+null_dist <- fct_africa %>%
+  specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
+  hypothesize(null = "independence") %>%
+  generate(1000, type = "permute") %>%
+  calculate(stat = "diff in props", 
+            order = c("1", "0"))
+visualize(null_dist)
+```
+
+![](data-analysis_files/figure-gfm/region-prop-diff-1.png)<!-- -->
+
+``` r
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
+```
+
+    ## # A tibble: 1 x 1
+    ##   p_value
+    ##     <dbl>
+    ## 1       0
