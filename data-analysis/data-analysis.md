@@ -323,7 +323,42 @@ there is a difference in the proportion of systemic crises between
 non-independent and independent African
 countries.
 
-#### Is there a difference between GDP of North African and sub-Saharan African countries?
+#### Is there a difference between GDP and systemic crises in North African and sub-Saharan African countries?
+
+We’re interested in seeing if there’s a noticeable difference in
+economic stability and prosperity between North African and sub-Saharan
+African countries.
+
+To answer this question, we need to label North African and sub-Saharan
+countries in our Africa dataset.
+
+``` r
+africa <- africa %>%
+  mutate(region = case_when(
+    country == "Algeria" ~ "n",
+    country == "Angola" ~ "s",
+    country == "Central African Republic" ~ "s",
+    country == "Egypt" ~ "n",
+    country == "Ivory Coast" ~ "s",
+    country == "Kenya" ~ "s",
+    country == "Mauritius" ~ "s",
+    country == "Morocco" ~ "n",
+    country == "Nigeria" ~ "s",
+    country == "South Africa" ~ "s",
+    country == "Tunisia" ~ "n",
+    country == "Zambia" ~ "s",
+    country == "Zimbabwe" ~ "s"
+  ))
+```
+
+Our research question asks: is there a difference in GDP between all
+North African and sub-Saharan countries?
+
+Our null hypothesis is that the proportion of systemic crises between
+independent and non-independent African countries is the same; the
+observed difference is due to chance Our alternative hypothesis is that
+the proportion of systemic crises between independent and
+non-independent African countries is different.
 
 1.  Label the countries
 2.  Calculate GDP diff.
