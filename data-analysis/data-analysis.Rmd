@@ -5,8 +5,7 @@ date: "12/3/2019"
 output: github_document
 ---
 
-Your data analysis goes here!
-```{r load-packages}
+```{r load-packages, message = F}
 #install.packages("countrycode") - already installed
 #install.packages("infer")
 library(infer)
@@ -15,14 +14,15 @@ library(countrycode)
 
 ```
 
-```{r load-data}
+```{r load-data, message = F, warning = F}
 africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 ```
 
-Our analysis begins with two datasets: our original African economic crises dataset, which contains numerical variables like inflation rate, exchange rate against the US dollar, and debt vs. GDP ratio. Another helpful variable to analyze would be each country's GDP, so we downloaded world GDP data from the World Bank, and joined this data with our Africa dataset.
-```{r data-cleaning}
+Our analysis begins with two datasets: our original African economic crises dataset, which contains numerical variables like inflation rate, exchange rate against the US dollar, and debt vs. GDP ratio. Another helpful variable to analyze would be each country's GDP, so we downloaded world GDP data from the World Bank, and joined this data with our Africa dataset. We then cleaned up the dataset by renaming some variables and changing their types from integers to booleans.
+
+```{r data-cleaning, warning = F}
 gdps <- gdps %>%
   pivot_longer(
     cols = c(
@@ -92,7 +92,7 @@ global <- global[-1,] %>%
   )
 ```
 
-## Question 2: Hypothesis Testing
+## Question 1: Hypothesis Testing
 
 #### Was an economic crisis more likely following n years after decolonization?
 
@@ -129,19 +129,17 @@ We see that the median amount of years a country will first encounter a banking 
 We're really interested in the economic stability of independent vs. colonized African countries. In particular, we're wondering if post-independence African countries see a higher proportion of systemic crises (per year) compared to before independence. Let's examine it: 
 
 ```{r prop-crisis}
-crisis_prop <- africa %>%
+africa %>%
   group_by(country, independence) %>%
   summarise(crisis_prop = sum(systemic_crisis)/n())
-crisis_prop
-overall_crisis_prop <- africa %>%
+africa %>%
   group_by(independence) %>%
   summarise(overall_crisis_prop = sum(systemic_crisis)/n())
-overall_crisis_prop
 ```
 
 Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent country, while there is a 9.85% chance of a systemic crisis occurring in any given year for a independent country. The difference in proportions is 0.094320737. 
 
-We'd like to conduct a hypothesis test to see if there is a difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
+We'd like to conduct a hypothesis test to see if there is a difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
 
 Since we're testing for independence, we'll use permute. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer.
 
@@ -155,21 +153,26 @@ fct_africa <- africa %>%
 ```{r crisis-prop-diff}
 set.seed(1)
 null_dist <- fct_africa %>%
-  specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
+  specify(response = systemic_crisis, explanatory = independence, 
+          success = "1") %>%
   hypothesize(null = "independence") %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
-visualize(null_dist)
-get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "both")
+visualize(null_dist) +
+  shade_p_value(0.094320737, "both") +
+  labs(title = "Null Distribution of Difference in Systemic Crisis Proportions", subtitle = "Between Independent and Non-Independent African Countries", x = "Difference in Proportions", 
+       y = "Count")
 ```
 
 Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in the proportion of systemic crises between non-independent and independent African countries.
 
+## Question 2: Hypothesis Testing
 
 #### Is there a difference between GDP and systemic crises in North African and sub-Saharan African countries?
 
-We're interested in seeing if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. 
+We're interested in seeing if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate this using data for GDP and systemic crises.
 
 To answer this question, we need to label North African and sub-Saharan countries in our Africa dataset. 
 ``` {r label-region}
@@ -232,11 +235,11 @@ african_gdps %>%
   group_by(region) %>%
   summarise(avg_gdp = median(gdp))
 ```
-The average GDP for North African countries is \$110,081,000,000; the average GDP for sub-Saharan countries is \$44,299,338,704. The difference is $65,781,661,296.
+The average GDP for North African countries is \$110,081,000,000; the average GDP for sub-Saharan countries is \$44,299,338,704. Therefore, the difference in median GDP between North African and sub-Saharan countries is $65,781,661,296.
 
 The first research question we'll ask is: is there a difference in median GDP among all North African and sub-Saharan countries?
 
-Our null hypothesis is that the GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the GDP of independent and non-independent African countries is different. 
+Our null hypothesis is that the median GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the median GDP of independent and non-independent African countries is different. 
 
 Since we're testing for independence, we'll use permute.
 ```{r gdp-prop-diff}
@@ -250,8 +253,11 @@ null_dist2 <- gdp_2014 %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
-visualize(null_dist2)
 get_p_value(null_dist2, obs_stat = 65781661296, direction = "two_sided")
+visualize(null_dist2) +
+  shade_p_value(65781661296, "both") +
+  labs(title = "Null Distribution of Difference in 2014 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
+       y = "Count")
 ```
 
 Since our p-value of 0.528 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a difference between the median GDP of North African countries comapred to sub-Saharan countries.
@@ -278,8 +284,11 @@ null_dist3 <- fct_africa %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("n", "s"))
-visualize(null_dist3)
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "two_sided")
+visualize(null_dist3) +
+  shade_p_value(0.0535702, "both") +
+  labs(title = "Null Distribution of Difference in Proportion of Systemic 
+  Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
 ```
 
 Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in proportion of systemic crises between North African countries and sub-Saharan countries.

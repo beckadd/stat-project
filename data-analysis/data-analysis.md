@@ -3,100 +3,27 @@ An Analysis of African Systemic Crises
 Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 12/3/2019
 
-Your data analysis goes here\!
-
 ``` r
 #install.packages("countrycode") - already installed
 #install.packages("infer")
 library(infer)
 library(tidyverse)
-```
-
-    ## ── Attaching packages ────────────────────────────────────────────────────── tidyverse 1.2.1 ──
-
-    ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
-    ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
-    ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
-    ## ✔ readr   1.3.1     ✔ forcats 0.4.0
-
-    ## ── Conflicts ───────────────────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-
-``` r
 library(countrycode)
 ```
 
 ``` r
 africa <- read_csv("../data/african_crises.csv")
-```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   case = col_double(),
-    ##   cc3 = col_character(),
-    ##   country = col_character(),
-    ##   year = col_double(),
-    ##   systemic_crisis = col_double(),
-    ##   exch_usd = col_double(),
-    ##   domestic_debt_in_default = col_double(),
-    ##   sovereign_external_debt_default = col_double(),
-    ##   gdp_weighted_default = col_double(),
-    ##   inflation_annual_cpi = col_double(),
-    ##   independence = col_double(),
-    ##   currency_crises = col_double(),
-    ##   inflation_crises = col_double(),
-    ##   banking_crisis = col_character()
-    ## )
-
-``` r
 global <- read_csv("../data/global_crisis_data.csv")
-```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   .default = col_character(),
-    ##   Case = col_double(),
-    ##   Year = col_double(),
-    ##   exch_usd = col_double(),
-    ##   exch_usd_alt1 = col_double(),
-    ##   exch_usd_alt2 = col_double(),
-    ##   exch_usd_alt3 = col_double(),
-    ##   `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors` = col_double()
-    ## )
-
-    ## See spec(...) for full column specifications.
-
-    ## Warning: 891 parsing failures.
-    ##  row      col expected actual                             file
-    ## 1228 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1229 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1230 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1231 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## 1232 exch_usd a double    n/a '../data/global_crisis_data.csv'
-    ## .... ........ ........ ...... ................................
-    ## See problems(...) for more details.
-
-``` r
 gdps <- read_csv("../data/world_gdp_data.csv")
 ```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   .default = col_double(),
-    ##   `Country Name` = col_character(),
-    ##   `Country Code` = col_character(),
-    ##   `Indicator Name` = col_character(),
-    ##   `Indicator Code` = col_character()
-    ## )
-    ## See spec(...) for full column specifications.
 
 Our analysis begins with two datasets: our original African economic
 crises dataset, which contains numerical variables like inflation rate,
 exchange rate against the US dollar, and debt vs. GDP ratio. Another
 helpful variable to analyze would be each country’s GDP, so we
 downloaded world GDP data from the World Bank, and joined this data with
-our Africa dataset.
+our Africa dataset. We then cleaned up the dataset by renaming some
+variables and changing their types from integers to booleans.
 
 ``` r
 gdps <- gdps %>%
@@ -168,17 +95,7 @@ global <- global[-1,] %>%
   )
 ```
 
-    ## Warning: NAs introduced by coercion
-    
-    ## Warning: NAs introduced by coercion
-    
-    ## Warning: NAs introduced by coercion
-    
-    ## Warning: NAs introduced by coercion
-    
-    ## Warning: NAs introduced by coercion
-
-## Question 2: Hypothesis Testing
+## Question 1: Hypothesis Testing
 
 #### Was an economic crisis more likely following n years after decolonization?
 
@@ -233,10 +150,9 @@ post-independence African countries see a higher proportion of systemic
 crises (per year) compared to before independence. Let’s examine it:
 
 ``` r
-crisis_prop <- africa %>%
+africa %>%
   group_by(country, independence) %>%
   summarise(crisis_prop = sum(systemic_crisis)/n())
-crisis_prop
 ```
 
     ## # A tibble: 25 x 3
@@ -256,10 +172,9 @@ crisis_prop
     ## # … with 15 more rows
 
 ``` r
-overall_crisis_prop <- africa %>%
+africa %>%
   group_by(independence) %>%
   summarise(overall_crisis_prop = sum(systemic_crisis)/n())
-overall_crisis_prop
 ```
 
     ## # A tibble: 2 x 2
@@ -279,7 +194,7 @@ in proportions of systemic crises between independent and
 non-independent countries across all African countries. Our null
 hypothesis is that the proportion of systemic crises between independent
 and non-independent African countries is the same; the observed
-difference is due to chance Our alternative hypothesis is that the
+difference is due to chance. Our alternative hypothesis is that the
 proportion of systemic crises between independent and non-independent
 African countries is different.
 
@@ -299,18 +214,13 @@ fct_africa <- africa %>%
 ``` r
 set.seed(1)
 null_dist <- fct_africa %>%
-  specify(response = systemic_crisis, explanatory = independence, success = "1") %>%
+  specify(response = systemic_crisis, explanatory = independence, 
+          success = "1") %>%
   hypothesize(null = "independence") %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
-visualize(null_dist)
-```
-
-![](data-analysis_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
-
-``` r
-get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "both")
 ```
 
     ## # A tibble: 1 x 1
@@ -318,17 +228,29 @@ get_p_value(null_dist, obs_stat = 0.094320737, direction = "two_sided")
     ##     <dbl>
     ## 1       0
 
+``` r
+visualize(null_dist) +
+  shade_p_value(0.094320737, "both") +
+  labs(title = "Null Distribution of Difference in Systemic Crisis Proportions", subtitle = "Between Independent and Non-Independent African Countries", x = "Difference in Proportions", 
+       y = "Count")
+```
+
+![](data-analysis_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
+
 Since our p-value of 0 is less than our significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
 there is a difference in the proportion of systemic crises between
 non-independent and independent African
 countries.
 
+## Question 2: Hypothesis Testing
+
 #### Is there a difference between GDP and systemic crises in North African and sub-Saharan African countries?
 
 We’re interested in seeing if there’s a noticeable difference in
 economic stability and prosperity between North African and sub-Saharan
-African countries.
+African countries. We can evaluate this using data for GDP and systemic
+crises.
 
 To answer this question, we need to label North African and sub-Saharan
 countries in our Africa dataset.
@@ -404,16 +326,17 @@ african_gdps %>%
     ## 2 s       44299338704.
 
 The average GDP for North African countries is $110,081,000,000; the
-average GDP for sub-Saharan countries is $44,299,338,704. The difference
+average GDP for sub-Saharan countries is $44,299,338,704. Therefore, the
+difference in median GDP between North African and sub-Saharan countries
 is $65,781,661,296.
 
 The first research question we’ll ask is: is there a difference in
 median GDP among all North African and sub-Saharan countries?
 
-Our null hypothesis is that the GDP of North African and sub-Saharan
-countries is the same; the observed difference is due to chance. Our
-alternative hypothesis is that the GDP of independent and
-non-independent African countries is different.
+Our null hypothesis is that the median GDP of North African and
+sub-Saharan countries is the same; the observed difference is due to
+chance. Our alternative hypothesis is that the median GDP of independent
+and non-independent African countries is different.
 
 Since we’re testing for independence, we’ll use permute.
 
@@ -428,12 +351,6 @@ null_dist2 <- gdp_2014 %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
-visualize(null_dist2)
-```
-
-![](data-analysis_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
-
-``` r
 get_p_value(null_dist2, obs_stat = 65781661296, direction = "two_sided")
 ```
 
@@ -441,6 +358,15 @@ get_p_value(null_dist2, obs_stat = 65781661296, direction = "two_sided")
     ##   p_value
     ##     <dbl>
     ## 1   0.528
+
+``` r
+visualize(null_dist2) +
+  shade_p_value(65781661296, "both") +
+  labs(title = "Null Distribution of Difference in 2014 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
+       y = "Count")
+```
+
+![](data-analysis_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
 Since our p-value of 0.528 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
@@ -486,12 +412,6 @@ null_dist3 <- fct_africa %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("n", "s"))
-visualize(null_dist3)
-```
-
-![](data-analysis_files/figure-gfm/region-prop-diff-1.png)<!-- -->
-
-``` r
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "two_sided")
 ```
 
@@ -499,6 +419,15 @@ get_p_value(null_dist3, obs_stat = 0.0535702, direction = "two_sided")
     ##   p_value
     ##     <dbl>
     ## 1       0
+
+``` r
+visualize(null_dist3) +
+  shade_p_value(0.0535702, "both") +
+  labs(title = "Null Distribution of Difference in Proportion of Systemic 
+  Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
+```
+
+![](data-analysis_files/figure-gfm/region-prop-diff-1.png)<!-- -->
 
 Since our p-value of 0 is less than the significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
