@@ -469,12 +469,12 @@ every year in the dataset, for each country.
 african_gdps <- african_gdps %>%
   group_by(country) %>%
   mutate(
-    gdpdelta = gdp - lag(gdp, default = gdp[1])
+    deltagdp = gdp - lag(gdp, default = gdp[1])
   ) %>%
   mutate(
-    neg_gdpdelta = -gdpdelta
-  ) %>%
-  select(-gdpdelta)
+    neg_deltagdp = -deltagdp
+    ) %>%
+  select(-deltagdp)
 ```
 
 Notice that the gdpdelta has been negated - for our model, we want to
@@ -489,7 +489,7 @@ sovereign and domestic debt in default.
 
 ``` r
 full_neg_deltaGDP_model <- lm(
-  neg_gdpdelta ~ 
+  neg_deltagdp ~ 
     year +
     gdp +
     systemic_crisis +
@@ -516,7 +516,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
 ```
 
     ## Start:  AIC=24947.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + banking_crisis * inflation_crises * currency_crises * 
@@ -524,7 +524,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ## 
     ## Step:  AIC=24947.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -536,7 +536,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ## 
     ## Step:  AIC=24947.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -548,7 +548,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ## 
     ## Step:  AIC=24947.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -559,7 +559,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ## 
     ## Step:  AIC=24947.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -621,7 +621,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25107
     ## 
     ## Step:  AIC=24945.64
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + inflation_annual_cpi + independence + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -679,7 +679,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25108
     ## 
     ## Step:  AIC=24943.65
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
@@ -732,7 +732,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25106
     ## 
     ## Step:  AIC=24941.67
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
@@ -781,7 +781,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25104
     ## 
     ## Step:  AIC=24939.73
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
@@ -826,7 +826,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25102
     ## 
     ## Step:  AIC=24937.83
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
@@ -874,7 +874,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25100
     ## 
     ## Step:  AIC=24935.85
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
@@ -918,7 +918,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25099
     ## 
     ## Step:  AIC=24934.01
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
     ##     systemic_crisis:banking_crisis + currency_crises:inflation_crises:banking_crisis
@@ -957,7 +957,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25097
     ## 
     ## Step:  AIC=24932.23
-    ## neg_gdpdelta ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
     ##     currency_crises:inflation_crises:banking_crisis
@@ -996,7 +996,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25095
     ## 
     ## Step:  AIC=24930.23
-    ## neg_gdpdelta ~ year + gdp + exch_usd + gdp_weighted_default + 
+    ## neg_deltagdp ~ year + gdp + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
     ##     currency_crises:inflation_crises:banking_crisis
@@ -1031,7 +1031,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25093
     ## 
     ## Step:  AIC=24928.64
-    ## neg_gdpdelta ~ gdp + exch_usd + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + exch_usd + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
     ##     currency_crises:inflation_crises:banking_crisis
@@ -1062,7 +1062,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25125
     ## 
     ## Step:  AIC=24927.1
-    ## neg_gdpdelta ~ gdp + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
     ##     currency_crises:inflation_crises:banking_crisis
@@ -1089,7 +1089,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                                             25123
     ## 
     ## Step:  AIC=24926.51
-    ## neg_gdpdelta ~ gdp + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises
     ## 
@@ -1109,7 +1109,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                              70878714511165828890624 25121
     ## 
     ## Step:  AIC=24924.53
-    ## neg_gdpdelta ~ gdp + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises
     ## 
@@ -1127,7 +1127,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                              70898613116679542013952 25120
     ## 
     ## Step:  AIC=24922.57
-    ## neg_gdpdelta ~ gdp + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq
@@ -1144,7 +1144,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp                              71104064821737560211456 25119
     ## 
     ## Step:  AIC=24920.57
-    ## neg_gdpdelta ~ gdp + gdp_weighted_default + currency_crises + 
+    ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq

@@ -319,12 +319,12 @@ First and foremost, we must find the difference in GDP growth between every year
 african_gdps <- african_gdps %>%
   group_by(country) %>%
   mutate(
-    gdpdelta = gdp - lag(gdp, default = gdp[1])
+    deltagdp = gdp - lag(gdp, default = gdp[1])
   ) %>%
   mutate(
-    neg_gdpdelta = -gdpdelta
-  ) %>%
-  select(-gdpdelta)
+    neg_deltagdp = -deltagdp
+    ) %>%
+  select(-deltagdp)
 
 ```
 
@@ -334,7 +334,7 @@ Before we perform a backwards step to see which factors are most influential in 
 
 ```{r full-model}
 full_neg_deltaGDP_model <- lm(
-  neg_gdpdelta ~ 
+  neg_deltagdp ~ 
     year +
     gdp +
     systemic_crisis +
