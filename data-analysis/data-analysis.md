@@ -4,13 +4,14 @@ Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 12/3/2019
 
 ``` r
-#install.packages(c("infer","countrycode","pracma"))
+#install.packages(c("infer","countrycode","pracma", "plotly"))
 library(infer)
 library(tidyverse)
 library(countrycode)
 library(pracma)
 library(broom)
 library(knitr)
+library(plotly)
 ```
 
 ``` r
@@ -48,8 +49,22 @@ gdps <- gdps %>%
 african_gdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
 
-african_gdps$year <- african_gdps$year %>%
-  as.numeric()
+
+
+african_gdps <- african_gdps %>%
+  mutate(
+    year = as.numeric(year),
+    systemic_crisis = factor(systemic_crisis),
+    domestic_debt_in_default = factor(domestic_debt_in_default),
+    sovereign_external_debt_default = factor(sovereign_external_debt_default),
+    independence = factor(independence),
+    currency_crises = factor(case_when(
+      currency_crises < 1 ~ 0,
+      TRUE ~ 1
+    )),
+    inflation_crises = factor(inflation_crises),
+    banking_crisis = factor(banking_crisis)
+  )
 
 global <- global[-1,] %>%
   select(-`<`) %>%
@@ -504,7 +519,7 @@ full_neg_deltaGDP_model <- lm(
     banking_crisis +
     banking_crisis*inflation_crises*currency_crises*systemic_crisis +
     domestic_debt_in_default*sovereign_external_debt_default,
-  african_gdps
+  filter(african_gdps, !is.na(neg_deltagdp))
     )
 ```
 
@@ -515,7 +530,7 @@ value for AIC.
 best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
 ```
 
-    ## Start:  AIC=24947.64
+    ## Start:  AIC=24946.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
@@ -523,7 +538,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##     systemic_crisis + domestic_debt_in_default * sovereign_external_debt_default
     ## 
     ## 
-    ## Step:  AIC=24947.64
+    ## Step:  AIC=24946.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
@@ -535,7 +550,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##     systemic_crisis:currency_crises:banking_crisis + systemic_crisis:currency_crises:inflation_crises
     ## 
     ## 
-    ## Step:  AIC=24947.64
+    ## Step:  AIC=24946.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
@@ -547,7 +562,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##     systemic_crisis:currency_crises:banking_crisis
     ## 
     ## 
-    ## Step:  AIC=24947.64
+    ## Step:  AIC=24946.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
@@ -558,7 +573,7 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##     currency_crises:inflation_crises:banking_crisis + systemic_crisis:currency_crises:banking_crisis
     ## 
     ## 
-    ## Step:  AIC=24947.64
+    ## Step:  AIC=24946.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     sovereign_external_debt_default + gdp_weighted_default + 
     ##     inflation_annual_cpi + independence + currency_crises + inflation_crises + 
@@ -570,10 +585,10 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##                                                   Df
     ## - sovereign_external_debt_default                  1
     ## - inflation_annual_cpi                             1
-    ## - independence                                     1
     ## - systemic_crisis:inflation_crises                 1
-    ## - domestic_debt_in_default                         1
+    ## - independence                                     1
     ## - systemic_crisis:currency_crises:banking_crisis   1
+    ## - domestic_debt_in_default                         1
     ## - year                                             1
     ## - exch_usd                                         1
     ## - gdp_weighted_default                             1
@@ -581,46 +596,46 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## <none>                                              
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - sovereign_external_debt_default                       20555205934317568
-    ## - inflation_annual_cpi                                 535612308072693760
-    ## - independence                                        2003301036789334016
-    ## - systemic_crisis:inflation_crises                    5609551338934370304
-    ## - domestic_debt_in_default                            7385238961574117376
-    ## - systemic_crisis:currency_crises:banking_crisis     14532049582143045632
-    ## - year                                               43123327571138183168
-    ## - exch_usd                                           45681536647185825792
-    ## - gdp_weighted_default                              137411620075070291968
-    ## - currency_crises:inflation_crises:banking_crisis   149792768688151068672
+    ## - sovereign_external_debt_default                       37628496687661056
+    ## - inflation_annual_cpi                                 419392338553470976
+    ## - systemic_crisis:inflation_crises                    1394731754098524160
+    ## - independence                                        1643092511155027968
+    ## - systemic_crisis:currency_crises:banking_crisis      7183130453866446848
+    ## - domestic_debt_in_default                           11949245899089117184
+    ## - year                                               38411656112818356224
+    ## - exch_usd                                           45416724183551836160
+    ## - gdp_weighted_default                              132058192757796110336
+    ## - currency_crises:inflation_crises:banking_crisis   177206056310211084288
     ## <none>                                                                   
-    ## - gdp                                             16982949890558173118464
+    ## - gdp                                             17001277190156517900288
     ##                                                                       RSS
-    ## - sovereign_external_debt_default                 49026054519409778622464
-    ## - inflation_annual_cpi                            49026569576511916998656
-    ## - independence                                    49028037265240633638912
-    ## - systemic_crisis:inflation_crises                49031643515542778675200
-    ## - domestic_debt_in_default                        49033419203165418422272
-    ## - systemic_crisis:currency_crises:banking_crisis  49040566013785987350528
-    ## - year                                            49069157291774982488064
-    ## - exch_usd                                        49071715500851030130688
-    ## - gdp_weighted_default                            49163445584278914596864
-    ## - currency_crises:inflation_crises:banking_crisis 49175826732891995373568
-    ## <none>                                            49026033964203844304896
-    ## - gdp                                             66008983854762017423360
+    ## - sovereign_external_debt_default                 48920787070231127261184
+    ## - inflation_annual_cpi                            48921168834072993071104
+    ## - systemic_crisis:inflation_crises                48922144173488538124288
+    ## - independence                                    48922392534245594628096
+    ## - systemic_crisis:currency_crises:banking_crisis  48927932572188306046976
+    ## - domestic_debt_in_default                        48932698687633528717312
+    ## - year                                            48959161097847257956352
+    ## - exch_usd                                        48966166165917991436288
+    ## - gdp_weighted_default                            49052807634492235710464
+    ## - currency_crises:inflation_crises:banking_crisis 49097955498044650684416
+    ## <none>                                            48920749441734439600128
+    ## - gdp                                             65922026631890957500416
     ##                                                     AIC
-    ## - sovereign_external_debt_default                 24946
-    ## - inflation_annual_cpi                            24946
-    ## - independence                                    24946
-    ## - systemic_crisis:inflation_crises                24946
-    ## - domestic_debt_in_default                        24946
-    ## - systemic_crisis:currency_crises:banking_crisis  24946
-    ## - year                                            24946
-    ## - exch_usd                                        24946
-    ## - gdp_weighted_default                            24947
-    ## - currency_crises:inflation_crises:banking_crisis 24947
-    ## <none>                                            24948
-    ## - gdp                                             25107
+    ## - sovereign_external_debt_default                 24944
+    ## - inflation_annual_cpi                            24944
+    ## - systemic_crisis:inflation_crises                24944
+    ## - independence                                    24944
+    ## - systemic_crisis:currency_crises:banking_crisis  24945
+    ## - domestic_debt_in_default                        24945
+    ## - year                                            24945
+    ## - exch_usd                                        24945
+    ## - gdp_weighted_default                            24946
+    ## - currency_crises:inflation_crises:banking_crisis 24946
+    ## <none>                                            24946
+    ## - gdp                                             25106
     ## 
-    ## Step:  AIC=24945.64
+    ## Step:  AIC=24944.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + inflation_annual_cpi + independence + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
@@ -631,10 +646,10 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ##                                                   Df
     ## - inflation_annual_cpi                             1
-    ## - independence                                     1
     ## - systemic_crisis:inflation_crises                 1
-    ## - domestic_debt_in_default                         1
+    ## - independence                                     1
     ## - systemic_crisis:currency_crises:banking_crisis   1
+    ## - domestic_debt_in_default                         1
     ## - year                                             1
     ## - exch_usd                                         1
     ## - currency_crises:inflation_crises:banking_crisis  1
@@ -642,43 +657,43 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - inflation_annual_cpi                                 539409438981750784
-    ## - independence                                        2007407453930520576
-    ## - systemic_crisis:inflation_crises                    5623721967677865984
-    ## - domestic_debt_in_default                           12464315127044243456
-    ## - systemic_crisis:currency_crises:banking_crisis     14567204170705666048
-    ## - year                                               43113463905114914816
-    ## - exch_usd                                           68269717785476595712
-    ## - currency_crises:inflation_crises:banking_crisis   153301358049786593280
+    ## - inflation_annual_cpi                                 415276210315067392
+    ## - systemic_crisis:inflation_crises                    1383126289925275648
+    ## - independence                                        1638415363123183616
+    ## - systemic_crisis:currency_crises:banking_crisis      7295266808292966400
+    ## - domestic_debt_in_default                           17793053744225583104
+    ## - year                                               38552554830387216384
+    ## - exch_usd                                           64429825412265148416
+    ## - currency_crises:inflation_crises:banking_crisis   180715786082032025600
     ## <none>                                                                   
-    ## - gdp_weighted_default                              191626385051174830080
-    ## - gdp                                             17361383805010768297984
+    ## - gdp_weighted_default                              190598370440888975360
+    ## - gdp                                             17392323382221341720576
     ##                                                                       RSS
-    ## - inflation_annual_cpi                            49026593928848760373248
-    ## - independence                                    49028061926863709143040
-    ## - systemic_crisis:inflation_crises                49031678241377456488448
-    ## - domestic_debt_in_default                        49038518834536822865920
-    ## - systemic_crisis:currency_crises:banking_crisis  49040621723580484288512
-    ## - year                                            49069167983314893537280
-    ## - exch_usd                                        49094324237195255218176
-    ## - currency_crises:inflation_crises:banking_crisis 49179355877459565215744
-    ## <none>                                            49026054519409778622464
-    ## - gdp_weighted_default                            49217680904460953452544
-    ## - gdp                                             66387438324420546920448
+    ## - inflation_annual_cpi                            48921202346441442328576
+    ## - systemic_crisis:inflation_crises                48922170196521052536832
+    ## - independence                                    48922425485594250444800
+    ## - systemic_crisis:currency_crises:banking_crisis  48928082337039420227584
+    ## - domestic_debt_in_default                        48938580123975352844288
+    ## - year                                            48959339625061514477568
+    ## - exch_usd                                        48985216895643392409600
+    ## - currency_crises:inflation_crises:banking_crisis 49101502856313159286784
+    ## <none>                                            48920787070231127261184
+    ## - gdp_weighted_default                            49111385440672016236544
+    ## - gdp                                             66313110452452468981760
     ##                                                     AIC
-    ## - inflation_annual_cpi                            24944
-    ## - independence                                    24944
-    ## - systemic_crisis:inflation_crises                24944
-    ## - domestic_debt_in_default                        24944
-    ## - systemic_crisis:currency_crises:banking_crisis  24944
-    ## - year                                            24944
-    ## - exch_usd                                        24944
-    ## - currency_crises:inflation_crises:banking_crisis 24945
-    ## <none>                                            24946
-    ## - gdp_weighted_default                            24946
-    ## - gdp                                             25108
+    ## - inflation_annual_cpi                            24942
+    ## - systemic_crisis:inflation_crises                24942
+    ## - independence                                    24942
+    ## - systemic_crisis:currency_crises:banking_crisis  24943
+    ## - domestic_debt_in_default                        24943
+    ## - year                                            24943
+    ## - exch_usd                                        24943
+    ## - currency_crises:inflation_crises:banking_crisis 24944
+    ## <none>                                            24944
+    ## - gdp_weighted_default                            24945
+    ## - gdp                                             25107
     ## 
-    ## Step:  AIC=24943.65
+    ## Step:  AIC=24942.48
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + independence + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -687,10 +702,10 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ##     currency_crises:inflation_crises:banking_crisis + systemic_crisis:currency_crises:banking_crisis
     ## 
     ##                                                   Df
+    ## - systemic_crisis:inflation_crises                 1
     ## - independence                                     1
-    ## - systemic_crisis:inflation_crises                 1
-    ## - domestic_debt_in_default                         1
     ## - systemic_crisis:currency_crises:banking_crisis   1
+    ## - domestic_debt_in_default                         1
     ## - year                                             1
     ## - exch_usd                                         1
     ## - currency_crises:inflation_crises:banking_crisis  1
@@ -698,89 +713,89 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - independence                                        1981726758143000576
-    ## - systemic_crisis:inflation_crises                    5633789702050938880
-    ## - domestic_debt_in_default                           13188805476785061888
-    ## - systemic_crisis:currency_crises:banking_crisis     14295954473229484032
-    ## - year                                               42811339760044343296
-    ## - exch_usd                                           67982168924090269696
-    ## - currency_crises:inflation_crises:banking_crisis   152972588895581503488
+    ## - systemic_crisis:inflation_crises                    1376840370171674624
+    ## - independence                                        1618187999449710592
+    ## - systemic_crisis:currency_crises:banking_crisis      7127741785962446848
+    ## - domestic_debt_in_default                           18608372718017445888
+    ## - year                                               38307264580540170240
+    ## - exch_usd                                           64189891159869358080
+    ## - currency_crises:inflation_crises:banking_crisis   180675252527489351680
     ## <none>                                                                   
-    ## - gdp_weighted_default                              191814412445335683072
-    ## - gdp                                             17361766845365484519424
+    ## - gdp_weighted_default                              190762617409441366016
+    ## - gdp                                             17392982585321361244160
     ##                                                                       RSS
-    ## - independence                                    49028575655606903373824
-    ## - systemic_crisis:inflation_crises                49032227718550811312128
-    ## - domestic_debt_in_default                        49039782734325545435136
-    ## - systemic_crisis:currency_crises:banking_crisis  49040889883321989857280
-    ## - year                                            49069405268608804716544
-    ## - exch_usd                                        49094576097772850642944
-    ## - currency_crises:inflation_crises:banking_crisis 49179566517744341876736
-    ## <none>                                            49026593928848760373248
-    ## - gdp_weighted_default                            49218408341294096056320
-    ## - gdp                                             66388360774214244892672
-    ##                                                     AIC
-    ## - independence                                    24942
-    ## - systemic_crisis:inflation_crises                24942
-    ## - domestic_debt_in_default                        24942
-    ## - systemic_crisis:currency_crises:banking_crisis  24942
-    ## - year                                            24942
-    ## - exch_usd                                        24942
-    ## - currency_crises:inflation_crises:banking_crisis 24943
-    ## <none>                                            24944
-    ## - gdp_weighted_default                            24944
-    ## - gdp                                             25106
-    ## 
-    ## Step:  AIC=24941.67
-    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
-    ##     gdp_weighted_default + currency_crises + inflation_crises + 
-    ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
-    ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
-    ##     systemic_crisis:inflation_crises + systemic_crisis:currency_crises + 
-    ##     currency_crises:inflation_crises:banking_crisis + systemic_crisis:currency_crises:banking_crisis
-    ## 
-    ##                                                   Df
-    ## - systemic_crisis:inflation_crises                 1
-    ## - domestic_debt_in_default                         1
-    ## - systemic_crisis:currency_crises:banking_crisis   1
-    ## - year                                             1
-    ## - exch_usd                                         1
-    ## - currency_crises:inflation_crises:banking_crisis  1
-    ## <none>                                              
-    ## - gdp_weighted_default                             1
-    ## - gdp                                              1
-    ##                                                                 Sum of Sq
-    ## - systemic_crisis:inflation_crises                    5655308410137083904
-    ## - domestic_debt_in_default                           13641885010314133504
-    ## - systemic_crisis:currency_crises:banking_crisis     14298027764026966016
-    ## - year                                               40923328611474210816
-    ## - exch_usd                                           67959016370615615488
-    ## - currency_crises:inflation_crises:banking_crisis   152484839684768268288
-    ## <none>                                                                   
-    ## - gdp_weighted_default                              190853643649358495744
-    ## - gdp                                             17381970389622402842624
-    ##                                                                       RSS
-    ## - systemic_crisis:inflation_crises                49034230964017032069120
-    ## - domestic_debt_in_default                        49042217540617209118720
-    ## - systemic_crisis:currency_crises:banking_crisis  49042873683370921951232
-    ## - year                                            49069498984218369196032
-    ## - exch_usd                                        49096534671977510600704
-    ## - currency_crises:inflation_crises:banking_crisis 49181060495291663253504
-    ## <none>                                            49028575655606894985216
-    ## - gdp_weighted_default                            49219429299256253480960
-    ## - gdp                                             66410546045229297827840
+    ## - systemic_crisis:inflation_crises                48922579186811605614592
+    ## - independence                                    48922820534440883650560
+    ## - systemic_crisis:currency_crises:banking_crisis  48928330088227396386816
+    ## - domestic_debt_in_default                        48939810719159451385856
+    ## - year                                            48959509611021974110208
+    ## - exch_usd                                        48985392237601303298048
+    ## - currency_crises:inflation_crises:banking_crisis 49101877598968923291648
+    ## <none>                                            48921202346441433939968
+    ## - gdp_weighted_default                            49111964963850875305984
+    ## - gdp                                             66314184931762795184128
     ##                                                     AIC
     ## - systemic_crisis:inflation_crises                24940
-    ## - domestic_debt_in_default                        24940
-    ## - systemic_crisis:currency_crises:banking_crisis  24940
-    ## - year                                            24940
-    ## - exch_usd                                        24940
-    ## - currency_crises:inflation_crises:banking_crisis 24941
+    ## - independence                                    24940
+    ## - systemic_crisis:currency_crises:banking_crisis  24941
+    ## - domestic_debt_in_default                        24941
+    ## - year                                            24941
+    ## - exch_usd                                        24941
+    ## - currency_crises:inflation_crises:banking_crisis 24942
     ## <none>                                            24942
-    ## - gdp_weighted_default                            24942
+    ## - gdp_weighted_default                            24943
+    ## - gdp                                             25105
+    ## 
+    ## Step:  AIC=24940.5
+    ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
+    ##     gdp_weighted_default + independence + currency_crises + inflation_crises + 
+    ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
+    ##     currency_crises:inflation_crises + systemic_crisis:banking_crisis + 
+    ##     systemic_crisis:currency_crises + currency_crises:inflation_crises:banking_crisis + 
+    ##     systemic_crisis:currency_crises:banking_crisis
+    ## 
+    ##                                                   Df
+    ## - independence                                     1
+    ## - systemic_crisis:currency_crises:banking_crisis   1
+    ## - domestic_debt_in_default                         1
+    ## - year                                             1
+    ## - exch_usd                                         1
+    ## - currency_crises:inflation_crises:banking_crisis  1
+    ## <none>                                              
+    ## - gdp_weighted_default                             1
+    ## - gdp                                              1
+    ##                                                                 Sum of Sq
+    ## - independence                                        1619288410042662912
+    ## - systemic_crisis:currency_crises:banking_crisis      6201124991774228480
+    ## - domestic_debt_in_default                           18989257993217900544
+    ## - year                                               38089122259929137152
+    ## - exch_usd                                           63234186560720076800
+    ## - currency_crises:inflation_crises:banking_crisis   180048169977499353088
+    ## <none>                                                                   
+    ## - gdp_weighted_default                              189399359773082648576
+    ## - gdp                                             17411983429047035101184
+    ##                                                                       RSS
+    ## - independence                                    48924198475221648277504
+    ## - systemic_crisis:currency_crises:banking_crisis  48928780311803379843072
+    ## - domestic_debt_in_default                        48941568444804823515136
+    ## - year                                            48960668309071534751744
+    ## - exch_usd                                        48985813373372325691392
+    ## - currency_crises:inflation_crises:banking_crisis 49102627356789104967680
+    ## <none>                                            48922579186811605614592
+    ## - gdp_weighted_default                            49111978546584688263168
+    ## - gdp                                             66334562615858640715776
+    ##                                                     AIC
+    ## - independence                                    24938
+    ## - systemic_crisis:currency_crises:banking_crisis  24939
+    ## - domestic_debt_in_default                        24939
+    ## - year                                            24939
+    ## - exch_usd                                        24939
+    ## - currency_crises:inflation_crises:banking_crisis 24940
+    ## <none>                                            24940
+    ## - gdp_weighted_default                            24941
     ## - gdp                                             25104
     ## 
-    ## Step:  AIC=24939.73
+    ## Step:  AIC=24938.52
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -798,34 +813,34 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - systemic_crisis:currency_crises:banking_crisis      9049451890219155456
-    ## - domestic_debt_in_default                           13172176833501724672
-    ## - year                                               40464659827514146816
-    ## - exch_usd                                           65532862222269677568
-    ## - currency_crises:inflation_crises:banking_crisis   146879554491961573376
+    ## - systemic_crisis:currency_crises:banking_crisis      6182965225029894144
+    ## - domestic_debt_in_default                           19479383723034542080
+    ## - year                                               36588367529302294528
+    ## - exch_usd                                           63209612234264150016
+    ## - currency_crises:inflation_crises:banking_crisis   179617632722597445632
     ## <none>                                                                   
-    ## - gdp_weighted_default                              186068467976090157056
-    ## - gdp                                             17388047329699068641280
+    ## - gdp_weighted_default                              188545636461799538688
+    ## - gdp                                             17433560671810337374208
     ##                                                                       RSS
-    ## - systemic_crisis:currency_crises:banking_crisis  49043280415907259613184
-    ## - domestic_debt_in_default                        49047403140850542182400
-    ## - year                                            49074695623844554604544
-    ## - exch_usd                                        49099763826239310135296
-    ## - currency_crises:inflation_crises:banking_crisis 49181110518509002031104
-    ## <none>                                            49034230964017040457728
-    ## - gdp_weighted_default                            49220299431993130614784
-    ## - gdp                                             66422278293716109099008
+    ## - systemic_crisis:currency_crises:banking_crisis  48930381440446669783040
+    ## - domestic_debt_in_default                        48943677858944674430976
+    ## - year                                            48960786842750942183424
+    ## - exch_usd                                        48987408087455904038912
+    ## - currency_crises:inflation_crises:banking_crisis 49103816107944237334528
+    ## <none>                                            48924198475221639888896
+    ## - gdp_weighted_default                            49112744111683439427584
+    ## - gdp                                             66357759147031977263104
     ##                                                     AIC
-    ## - systemic_crisis:currency_crises:banking_crisis  24938
-    ## - domestic_debt_in_default                        24938
-    ## - year                                            24938
-    ## - exch_usd                                        24938
-    ## - currency_crises:inflation_crises:banking_crisis 24939
-    ## <none>                                            24940
-    ## - gdp_weighted_default                            24940
+    ## - systemic_crisis:currency_crises:banking_crisis  24937
+    ## - domestic_debt_in_default                        24937
+    ## - year                                            24937
+    ## - exch_usd                                        24937
+    ## - currency_crises:inflation_crises:banking_crisis 24938
+    ## <none>                                            24938
+    ## - gdp_weighted_default                            24939
     ## - gdp                                             25102
     ## 
-    ## Step:  AIC=24937.83
+    ## Step:  AIC=24936.59
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -834,8 +849,8 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## 
     ##                                                   Df
     ## - systemic_crisis:currency_crises                  1
-    ## - domestic_debt_in_default                         1
     ## - systemic_crisis:banking_crisis                   1
+    ## - domestic_debt_in_default                         1
     ## - year                                             1
     ## - exch_usd                                         1
     ## - currency_crises:inflation_crises:banking_crisis  1
@@ -843,37 +858,37 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - systemic_crisis:currency_crises                     1778823423359713280
-    ## - domestic_debt_in_default                           14665641311772606464
-    ## - systemic_crisis:banking_crisis                     18706085468927164416
-    ## - year                                               41273853006103707648
-    ## - exch_usd                                           67474079315929333760
-    ## - currency_crises:inflation_crises:banking_crisis   139558023545036472320
+    ## - systemic_crisis:currency_crises                     8047527649616068608
+    ## - systemic_crisis:banking_crisis                     21861227913189261312
+    ## - domestic_debt_in_default                           21914401644061130752
+    ## - year                                               37271090566103302144
+    ## - exch_usd                                           65207177417383215104
+    ## - currency_crises:inflation_crises:banking_crisis   174695821234533302272
     ## <none>                                                                   
-    ## - gdp_weighted_default                              190497440438425747456
-    ## - gdp                                             17401549028368419127296
+    ## - gdp_weighted_default                              193625075935709495296
+    ## - gdp                                             17449555572803147661312
     ##                                                                       RSS
-    ## - systemic_crisis:currency_crises                 49045059239330619326464
-    ## - domestic_debt_in_default                        49057946057219032219648
-    ## - systemic_crisis:banking_crisis                  49061986501376186777600
-    ## - year                                            49084554268913363320832
-    ## - exch_usd                                        49110754495223188946944
-    ## - currency_crises:inflation_crises:banking_crisis 49182838439452296085504
-    ## <none>                                            49043280415907259613184
-    ## - gdp_weighted_default                            49233777856345685360640
-    ## - gdp                                             66444829444275678740480
+    ## - systemic_crisis:currency_crises                 48938428968096285851648
+    ## - systemic_crisis:banking_crisis                  48952242668359859044352
+    ## - domestic_debt_in_default                        48952295842090730913792
+    ## - year                                            48967652531012773085184
+    ## - exch_usd                                        48995588617864052998144
+    ## - currency_crises:inflation_crises:banking_crisis 49105077261681203085312
+    ## <none>                                            48930381440446669783040
+    ## - gdp_weighted_default                            49124006516382379278336
+    ## - gdp                                             66379937013249817444352
     ##                                                     AIC
-    ## - systemic_crisis:currency_crises                 24936
-    ## - domestic_debt_in_default                        24936
-    ## - systemic_crisis:banking_crisis                  24936
-    ## - year                                            24936
-    ## - exch_usd                                        24937
-    ## - currency_crises:inflation_crises:banking_crisis 24937
-    ## <none>                                            24938
-    ## - gdp_weighted_default                            24938
+    ## - systemic_crisis:currency_crises                 24935
+    ## - systemic_crisis:banking_crisis                  24935
+    ## - domestic_debt_in_default                        24935
+    ## - year                                            24935
+    ## - exch_usd                                        24935
+    ## - currency_crises:inflation_crises:banking_crisis 24936
+    ## <none>                                            24937
+    ## - gdp_weighted_default                            24937
     ## - gdp                                             25100
     ## 
-    ## Step:  AIC=24935.85
+    ## Step:  AIC=24934.67
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + domestic_debt_in_default + 
     ##     gdp_weighted_default + currency_crises + inflation_crises + 
     ##     banking_crisis + inflation_crises:banking_crisis + currency_crises:banking_crisis + 
@@ -885,39 +900,39 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - systemic_crisis:banking_crisis                   1
     ## - year                                             1
     ## - exch_usd                                         1
-    ## - currency_crises:inflation_crises:banking_crisis  1
     ## <none>                                              
+    ## - currency_crises:inflation_crises:banking_crisis  1
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - domestic_debt_in_default                           13808619556119248896
-    ## - systemic_crisis:banking_crisis                     17525233163410866176
-    ## - year                                               41001677160729018368
-    ## - exch_usd                                           66743930887413432320
-    ## - currency_crises:inflation_crises:banking_crisis   148953296421894750208
+    ## - domestic_debt_in_default                           18904787814593855488
+    ## - systemic_crisis:banking_crisis                     19072856315987492864
+    ## - year                                               36851812646141296640
+    ## - exch_usd                                           63441974382041235456
     ## <none>                                                                   
-    ## - gdp_weighted_default                              188778957846129672192
-    ## - gdp                                             17416460904669827301376
+    ## - currency_crises:inflation_crises:banking_crisis   181706598177189134336
+    ## - gdp_weighted_default                              188299967390107566080
+    ## - gdp                                             17448342123847767556096
     ##                                                                       RSS
-    ## - domestic_debt_in_default                        49058867858886738575360
-    ## - systemic_crisis:banking_crisis                  49062584472494030192640
-    ## - year                                            49086060916491348344832
-    ## - exch_usd                                        49111803170218032758784
-    ## - currency_crises:inflation_crises:banking_crisis 49194012535752514076672
-    ## <none>                                            49045059239330619326464
-    ## - gdp_weighted_default                            49233838197176748998656
-    ## - gdp                                             66461520144000446627840
+    ## - domestic_debt_in_default                        48957333755910879707136
+    ## - systemic_crisis:banking_crisis                  48957501824412273344512
+    ## - year                                            48975280780742427148288
+    ## - exch_usd                                        49001870942478327087104
+    ## <none>                                            48938428968096285851648
+    ## - currency_crises:inflation_crises:banking_crisis 49120135566273474985984
+    ## - gdp_weighted_default                            49126728935486393417728
+    ## - gdp                                             66386771091944053407744
     ##                                                     AIC
-    ## - domestic_debt_in_default                        24934
-    ## - systemic_crisis:banking_crisis                  24934
-    ## - year                                            24934
-    ## - exch_usd                                        24935
-    ## - currency_crises:inflation_crises:banking_crisis 24936
-    ## <none>                                            24936
-    ## - gdp_weighted_default                            24936
-    ## - gdp                                             25099
+    ## - domestic_debt_in_default                        24933
+    ## - systemic_crisis:banking_crisis                  24933
+    ## - year                                            24933
+    ## - exch_usd                                        24933
+    ## <none>                                            24935
+    ## - currency_crises:inflation_crises:banking_crisis 24935
+    ## - gdp_weighted_default                            24935
+    ## - gdp                                             25098
     ## 
-    ## Step:  AIC=24934.01
+    ## Step:  AIC=24932.88
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -927,36 +942,36 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - systemic_crisis:banking_crisis                   1
     ## - year                                             1
     ## - exch_usd                                         1
-    ## - currency_crises:inflation_crises:banking_crisis  1
     ## <none>                                              
+    ## - currency_crises:inflation_crises:banking_crisis  1
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - systemic_crisis:banking_crisis                     19821740166746210304
-    ## - year                                               40818753610398564352
-    ## - exch_usd                                           68101268933598773248
-    ## - currency_crises:inflation_crises:banking_crisis   152322640958176886784
+    ## - systemic_crisis:banking_crisis                     22191281876544520192
+    ## - year                                               36504417999867871232
+    ## - exch_usd                                           64923279829824962560
     ## <none>                                                                   
-    ## - gdp_weighted_default                              196910065272141905920
-    ## - gdp                                             17426528534599856816128
+    ## - currency_crises:inflation_crises:banking_crisis   183275134921931227136
+    ## - gdp_weighted_default                              197873650191277490176
+    ## - gdp                                             17449476679389442736128
     ##                                                                       RSS
-    ## - systemic_crisis:banking_crisis                  49078689599053484785664
-    ## - year                                            49099686612497137139712
-    ## - exch_usd                                        49126969127820337348608
-    ## - currency_crises:inflation_crises:banking_crisis 49211190499844915462144
-    ## <none>                                            49058867858886738575360
-    ## - gdp_weighted_default                            49255777924158880481280
-    ## - gdp                                             66485396393486595391488
+    ## - systemic_crisis:banking_crisis                  48979525037787424227328
+    ## - year                                            48993838173910747578368
+    ## - exch_usd                                        49022257035740704669696
+    ## <none>                                            48957333755910879707136
+    ## - currency_crises:inflation_crises:banking_crisis 49140608890832810934272
+    ## - gdp_weighted_default                            49155207406102157197312
+    ## - gdp                                             66406810435300322443264
     ##                                                     AIC
-    ## - systemic_crisis:banking_crisis                  24932
-    ## - year                                            24932
-    ## - exch_usd                                        24933
-    ## - currency_crises:inflation_crises:banking_crisis 24934
-    ## <none>                                            24934
-    ## - gdp_weighted_default                            24934
-    ## - gdp                                             25097
+    ## - systemic_crisis:banking_crisis                  24931
+    ## - year                                            24931
+    ## - exch_usd                                        24932
+    ## <none>                                            24933
+    ## - currency_crises:inflation_crises:banking_crisis 24933
+    ## - gdp_weighted_default                            24933
+    ## - gdp                                             25096
     ## 
-    ## Step:  AIC=24932.23
+    ## Step:  AIC=24931.13
     ## neg_deltagdp ~ year + gdp + systemic_crisis + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -971,31 +986,31 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - systemic_crisis                                       14233270824730624
-    ## - year                                               37583980736773357568
-    ## - exch_usd                                           63265581747765510144
-    ## - currency_crises:inflation_crises:banking_crisis   141100902499664003072
+    ## - systemic_crisis                                        8241398230810624
+    ## - year                                               33254421955088482304
+    ## - exch_usd                                           60009600627798704128
+    ## - currency_crises:inflation_crises:banking_crisis   171779032501220016128
     ## <none>                                                                   
-    ## - gdp_weighted_default                              193160230251754684416
-    ## - gdp                                             17434545361703745355776
+    ## - gdp_weighted_default                              194180865949287055360
+    ## - gdp                                             17454076532187016986624
     ##                                                                       RSS
-    ## - systemic_crisis                                 49078703832324317904896
-    ## - year                                            49116273579790266531840
-    ## - exch_usd                                        49141955180801258684416
-    ## - currency_crises:inflation_crises:banking_crisis 49219790501553157177344
-    ## <none>                                            49078689599053493174272
-    ## - gdp_weighted_default                            49271849829305247858688
-    ## - gdp                                             66513234960757238530048
+    ## - systemic_crisis                                 48979533279185655037952
+    ## - year                                            49012779459742512709632
+    ## - exch_usd                                        49039534638415222931456
+    ## - currency_crises:inflation_crises:banking_crisis 49151304070288644243456
+    ## <none>                                            48979525037787424227328
+    ## - gdp_weighted_default                            49173705903736711282688
+    ## - gdp                                             66433601569974441213952
     ##                                                     AIC
-    ## - systemic_crisis                                 24930
-    ## - year                                            24931
-    ## - exch_usd                                        24931
-    ## - currency_crises:inflation_crises:banking_crisis 24932
-    ## <none>                                            24932
-    ## - gdp_weighted_default                            24932
-    ## - gdp                                             25095
+    ## - systemic_crisis                                 24929
+    ## - year                                            24930
+    ## - exch_usd                                        24930
+    ## - currency_crises:inflation_crises:banking_crisis 24931
+    ## <none>                                            24931
+    ## - gdp_weighted_default                            24931
+    ## - gdp                                             25094
     ## 
-    ## Step:  AIC=24930.23
+    ## Step:  AIC=24929.13
     ## neg_deltagdp ~ year + gdp + exch_usd + gdp_weighted_default + 
     ##     currency_crises + inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -1009,28 +1024,28 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - year                                               37775582707551567872
-    ## - exch_usd                                           63447556740006019072
-    ## - currency_crises:inflation_crises:banking_crisis   142875521863903084544
+    ## - year                                               33402259754553704448
+    ## - exch_usd                                           60211442704139157504
+    ## - currency_crises:inflation_crises:banking_crisis   173254139280730619904
     ## <none>                                                                   
-    ## - gdp_weighted_default                              193692501077200470016
-    ## - gdp                                             17451553778131026313216
+    ## - gdp_weighted_default                              194715885497263063040
+    ## - gdp                                             17469485012791949524992
     ##                                                                       RSS
-    ## - year                                            49116479415031869472768
-    ## - exch_usd                                        49142151389064323923968
-    ## - currency_crises:inflation_crises:banking_crisis 49221579354188220989440
-    ## <none>                                            49078703832324317904896
-    ## - gdp_weighted_default                            49272396333401518374912
-    ## - gdp                                             66530257610455344218112
+    ## - year                                            49012935538940208742400
+    ## - exch_usd                                        49039744721889794195456
+    ## - currency_crises:inflation_crises:banking_crisis 49152787418466385657856
+    ## <none>                                            48979533279185655037952
+    ## - gdp_weighted_default                            49174249164682918100992
+    ## - gdp                                             66449018291977604562944
     ##                                                     AIC
-    ## - year                                            24929
-    ## - exch_usd                                        24929
-    ## - currency_crises:inflation_crises:banking_crisis 24930
-    ## <none>                                            24930
-    ## - gdp_weighted_default                            24930
-    ## - gdp                                             25093
+    ## - year                                            24928
+    ## - exch_usd                                        24928
+    ## - currency_crises:inflation_crises:banking_crisis 24929
+    ## <none>                                            24929
+    ## - gdp_weighted_default                            24929
+    ## - gdp                                             25092
     ## 
-    ## Step:  AIC=24928.64
+    ## Step:  AIC=24927.5
     ## neg_deltagdp ~ gdp + exch_usd + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -1043,25 +1058,25 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - exch_usd                                           41444646732026609664
-    ## - currency_crises:inflation_crises:banking_crisis   133327471094343401472
+    ## - exch_usd                                           40117258721391804416
+    ## - currency_crises:inflation_crises:banking_crisis   164437929036601098240
     ## <none>                                                                   
-    ## - gdp_weighted_default                              191547051322388774912
-    ## - gdp                                             21730192893536376979456
+    ## - gdp_weighted_default                              192656351988958625792
+    ## - gdp                                             21791779812040010366976
     ##                                                                       RSS
-    ## - exch_usd                                        49157924061763896082432
-    ## - currency_crises:inflation_crises:banking_crisis 49249806886126212874240
-    ## <none>                                            49116479415031869472768
-    ## - gdp_weighted_default                            49308026466354258247680
-    ## - gdp                                             70846672308568246452224
+    ## - exch_usd                                        49053052797661600546816
+    ## - currency_crises:inflation_crises:banking_crisis 49177373467976809840640
+    ## <none>                                            49012935538940208742400
+    ## - gdp_weighted_default                            49205591890929167368192
+    ## - gdp                                             70804715350980219109376
     ##                                                     AIC
-    ## - exch_usd                                        24927
-    ## - currency_crises:inflation_crises:banking_crisis 24928
-    ## <none>                                            24929
-    ## - gdp_weighted_default                            24929
+    ## - exch_usd                                        24926
+    ## - currency_crises:inflation_crises:banking_crisis 24927
+    ## <none>                                            24928
+    ## - gdp_weighted_default                            24928
     ## - gdp                                             25125
     ## 
-    ## Step:  AIC=24927.1
+    ## Step:  AIC=24925.94
     ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises + 
@@ -1073,90 +1088,90 @@ best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
     ## - gdp_weighted_default                             1
     ## - gdp                                              1
     ##                                                                 Sum of Sq
-    ## - currency_crises:inflation_crises:banking_crisis   128120663303063076864
+    ## - currency_crises:inflation_crises:banking_crisis   158717616104465760256
     ## <none>                                                                   
-    ## - gdp_weighted_default                              203224756831656083456
-    ## - gdp                                             21709702207213592903680
+    ## - gdp_weighted_default                              204137952716097847296
+    ## - gdp                                             21772823430857247162368
     ##                                                                       RSS
-    ## - currency_crises:inflation_crises:banking_crisis 49286044725066959159296
-    ## <none>                                            49157924061763896082432
-    ## - gdp_weighted_default                            49361148818595552165888
-    ## - gdp                                             70867626268977488986112
+    ## - currency_crises:inflation_crises:banking_crisis 49211770413766066307072
+    ## <none>                                            49053052797661600546816
+    ## - gdp_weighted_default                            49257190750377698394112
+    ## - gdp                                             70825876228518847709184
     ##                                                     AIC
     ## - currency_crises:inflation_crises:banking_crisis 24926
-    ## <none>                                            24927
-    ## - gdp_weighted_default                            24927
+    ## <none>                                            24926
+    ## - gdp_weighted_default                            24926
     ## - gdp                                             25123
     ## 
-    ## Step:  AIC=24926.51
+    ## Step:  AIC=24925.69
     ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + inflation_crises:banking_crisis + 
     ##     currency_crises:banking_crisis + currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq
-    ## - inflation_crises:banking_crisis   1     1668370269678338048
-    ## - currency_crises:banking_crisis    1     5017021542228295680
+    ## - inflation_crises:banking_crisis   1     1605635808788742144
+    ## - currency_crises:banking_crisis    1     4481536214108733440
     ## <none>                                                       
-    ## - gdp_weighted_default              1   204715926384841588736
-    ## - currency_crises:inflation_crises  1   601401775183871606784
-    ## - gdp                               1 21592669786098869731328
+    ## - gdp_weighted_default              1   205050588357237669888
+    ## - currency_crises:inflation_crises  1   617027844859980939264
+    ## - gdp                               1 21636813041511002275840
     ##                                                        RSS   AIC
-    ## - inflation_crises:banking_crisis  49287713095336637497344 24924
-    ## - currency_crises:banking_crisis   49291061746609187454976 24925
-    ## <none>                             49286044725066959159296 24926
-    ## - gdp_weighted_default             49490760651451800748032 24927
-    ## - currency_crises:inflation_crises 49887446500250830766080 24931
-    ## - gdp                              70878714511165828890624 25121
+    ## - inflation_crises:banking_crisis  49213376049574855049216 24924
+    ## - currency_crises:banking_crisis   49216251949980175040512 24924
+    ## <none>                             49211770413766066307072 24926
+    ## - gdp_weighted_default             49416821002123303976960 24926
+    ## - currency_crises:inflation_crises 49828798258626047246336 24930
+    ## - gdp                              70848583455277068582912 25121
     ## 
-    ## Step:  AIC=24924.53
+    ## Step:  AIC=24923.71
     ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + currency_crises:banking_crisis + 
     ##     currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq
-    ## - currency_crises:banking_crisis    1     3353283703831789568
+    ## - currency_crises:banking_crisis    1     2876135973907857408
     ## <none>                                                       
-    ## - gdp_weighted_default              1   204624084315467153408
-    ## - currency_crises:inflation_crises  1   626202376530535907328
-    ## - gdp                               1 21610900021342904516608
+    ## - gdp_weighted_default              1   204925036846391492608
+    ## - currency_crises:inflation_crises  1   640591150078559780864
+    ## - gdp                               1 21651516203408031744000
     ##                                                        RSS   AIC
-    ## - currency_crises:banking_crisis   49291066379040469286912 24923
-    ## <none>                             49287713095336637497344 24924
-    ## - gdp_weighted_default             49492337179652104650752 24925
-    ## - currency_crises:inflation_crises 49913915471867173404672 24929
-    ## - gdp                              70898613116679542013952 25120
+    ## - currency_crises:banking_crisis   49216252185548762906624 24922
+    ## <none>                             49213376049574855049216 24924
+    ## - gdp_weighted_default             49418301086421246541824 24924
+    ## - currency_crises:inflation_crises 49853967199653414830080 24929
+    ## - gdp                              70864892252982886793216 25119
     ## 
-    ## Step:  AIC=24922.57
+    ## Step:  AIC=24921.74
     ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + banking_crisis + currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq
-    ## - banking_crisis                    1      196303536772874240
+    ## - banking_crisis                    1      154248703849267200
     ## <none>                                                       
-    ## - gdp_weighted_default              1   203087074776970166272
-    ## - currency_crises:inflation_crises  1   674828181674754310144
-    ## - gdp                               1 21812998442697082535936
+    ## - gdp_weighted_default              1   203470871786543906816
+    ## - currency_crises:inflation_crises  1   683900807704903417856
+    ## - gdp                               1 21867940863114234298368
     ##                                                        RSS   AIC
-    ## - banking_crisis                   49291262682577250549760 24921
-    ## <none>                             49291066379040477675520 24923
-    ## - gdp_weighted_default             49494153453817447841792 24923
-    ## - currency_crises:inflation_crises 49965894560715231985664 24928
-    ## - gdp                              71104064821737560211456 25119
+    ## - banking_crisis                   49216406434252612173824 24920
+    ## <none>                             49216252185548762906624 24922
+    ## - gdp_weighted_default             49419723057335306813440 24922
+    ## - currency_crises:inflation_crises 49900152993253666324480 24927
+    ## - gdp                              71084193048662997204992 25119
     ## 
-    ## Step:  AIC=24920.57
+    ## Step:  AIC=24919.74
     ## neg_deltagdp ~ gdp + gdp_weighted_default + currency_crises + 
     ##     inflation_crises + currency_crises:inflation_crises
     ## 
     ##                                    Df               Sum of Sq
     ## <none>                                                       
-    ## - gdp_weighted_default              1   203360168880145170432
-    ## - currency_crises:inflation_crises  1   674634636485483036672
-    ## - gdp                               1 21969330810606164377600
+    ## - gdp_weighted_default              1   203718050432772210688
+    ## - currency_crises:inflation_crises  1   683746641873656086528
+    ## - gdp                               1 22025437610856859828224
     ##                                                        RSS   AIC
-    ## <none>                             49291262682577250549760 24921
-    ## - gdp_weighted_default             49494622851457395720192 24921
-    ## - currency_crises:inflation_crises 49965897319062733586432 24926
-    ## - gdp                              71260593493183414927360 25118
+    ## <none>                             49216406434252612173824 24920
+    ## - gdp_weighted_default             49420124484685384384512 24920
+    ## - currency_crises:inflation_crises 49900153076126268260352 24925
+    ## - gdp                              71241844045109472002048 25118
 
 ``` r
 glance(best_aic)
@@ -1165,7 +1180,7 @@ glance(best_aic)
     ## # A tibble: 1 x 11
     ##   r.squared adj.r.squared  sigma statistic  p.value    df  logLik    AIC
     ##       <dbl>         <dbl>  <dbl>     <dbl>    <dbl> <int>   <dbl>  <dbl>
-    ## 1     0.323         0.316 9.59e9      51.1 2.67e-43     6 -13223. 26461.
+    ## 1     0.324         0.317 9.58e9      51.3 1.79e-43     6 -13223. 26460.
     ## # … with 3 more variables: BIC <dbl>, deviance <dbl>, df.residual <int>
 
 ``` r
@@ -1174,11 +1189,11 @@ tidy(best_aic) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-| term                               |         estimate |
-| :--------------------------------- | ---------------: |
-| (Intercept)                        |  \-349243503.389 |
-| gdp                                |          \-0.088 |
-| gdp\_weighted\_default             |  13979988059.138 |
-| currency\_crises                   |   4789654129.605 |
-| inflation\_crises                  |   3374940870.905 |
-| currency\_crises:inflation\_crises | \-6866136676.216 |
+| term                                 |         estimate |
+| :----------------------------------- | ---------------: |
+| (Intercept)                          |  \-366494257.942 |
+| gdp                                  |          \-0.088 |
+| gdp\_weighted\_default               |  13990989692.545 |
+| currency\_crises1                    |   5105526938.416 |
+| inflation\_crises1                   |   3493307347.953 |
+| currency\_crises1:inflation\_crises1 | \-7405531522.450 |

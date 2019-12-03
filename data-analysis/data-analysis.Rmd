@@ -7,13 +7,14 @@ output: github_document
 
 ```{r load-packages, message = F}
 
-#install.packages(c("infer","countrycode","pracma"))
+#install.packages(c("infer","countrycode","pracma", "plotly"))
 library(infer)
 library(tidyverse)
 library(countrycode)
 library(pracma)
 library(broom)
 library(knitr)
+library(plotly)
 ```
 
 ```{r load-data, message = F, warning = F}
@@ -45,8 +46,22 @@ gdps <- gdps %>%
 african_gdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
 
-african_gdps$year <- african_gdps$year %>%
-  as.numeric()
+
+
+african_gdps <- african_gdps %>%
+  mutate(
+    year = as.numeric(year),
+    systemic_crisis = factor(systemic_crisis),
+    domestic_debt_in_default = factor(domestic_debt_in_default),
+    sovereign_external_debt_default = factor(sovereign_external_debt_default),
+    independence = factor(independence),
+    currency_crises = factor(case_when(
+      currency_crises < 1 ~ 0,
+      TRUE ~ 1
+    )),
+    inflation_crises = factor(inflation_crises),
+    banking_crisis = factor(banking_crisis)
+  )
 
 global <- global[-1,] %>%
   select(-`<`) %>%
@@ -333,6 +348,7 @@ Notice that the gdpdelta has been negated - for our model, we want to optimize f
 Before we perform a backwards step to see which factors are most influential in an increasingly negative delta GDP, we have our "full" model, with all of the variables. Additionally, we have examined the interaction between the `crisis` variables, and the interaction between sovereign and domestic debt in default.
 
 ```{r full-model}
+
 full_neg_deltaGDP_model <- lm(
   neg_deltagdp ~ 
     year +
@@ -349,13 +365,14 @@ full_neg_deltaGDP_model <- lm(
     banking_crisis +
     banking_crisis*inflation_crises*currency_crises*systemic_crisis +
     domestic_debt_in_default*sovereign_external_debt_default,
-  african_gdps
+  filter(african_gdps, !is.na(neg_deltagdp))
     )
 ```
 
 Now we can perform our backwards step function, optimizing for a higher value for AIC.
 
 ```{r step-func-AIC, output = "hide"}
+
 best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
 
 glance(best_aic)
