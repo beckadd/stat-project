@@ -185,7 +185,8 @@ This is fascinating, but we’re more interested in seeing if there’s a
 difference in the economic stability of independent vs. colonized
 African countries. In particular, we’re wondering if post-independence
 African countries see a higher proportion of systemic crises (per year)
-compared to before independence. Let’s examine it:
+compared to before independence, when they were colonized. Let’s examine
+it:
 
 ``` r
 africa %>%
@@ -223,25 +224,23 @@ africa %>%
 
 Based on our sample, we see that on average, there is a 0.42% chance of
 a systemic crisis occurring in any given year for a non-independent
-country, while there is a 9.85% chance of a systemic crisis occurring in
-any given year for a independent country. The difference in these
-proportions is 0.094320737.
+(i.e. colonized) country, while there is a 9.85% chance of a systemic
+crisis occurring in any given year for an independent country. The
+difference in these proportions is 0.094320737.
 
 We’d like to conduct a hypothesis test to see if there is a significant
-difference in the proportion of years with systemic crises between
-independent and non-independent countries across all African countries.
-Our null hypothesis is that the proportion of years with systemic crises
-between independent and non-independent African countries is the same;
+difference in the proportion of years with systemic crises between all
+African countries post-independence and pre-independence. Our null
+hypothesis is that the proportion of years with systemic crises between
+African countries post-independence and pre-independence is the same;
 the observed difference is due to chance. Our alternative hypothesis is
-that the proportion of years with systemic crises between independent
-and non-independent African countries is different.
+that the proportion of years with systemic crises between African
+countries pre-independence and post-independence is different.
 
 Since we’re testing for independence, we’ll use permutation. We’ll
 modify our dataset slightly by factoring success into a categorical
-variable so that it’ll work nicely with infer.
-
-Before we run the hypothesis test, we need to quickly factor
-systemic\_crisis to be a categorical variable:
+variable so that it’ll work nicely with infer. We also need to quickly
+factor systemic\_crisis to be a categorical variable:
 
 ``` r
 fct_africa <- africa %>%
@@ -278,8 +277,12 @@ visualize(null_dist) +
 Since our p-value of 0 is less than our significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
 there is a difference in the proportion of years with systemic crises
-between non-independent and independent African
-countries.
+between African countries post-independence and pre-independence.
+
+Ultimately, we can conclude that after gaining independence, African
+countries experience greater economic instability compared to when they
+were under colonial
+rule.
 
 ## Question 2: Hypothesis Testing
 
@@ -423,7 +426,7 @@ visualize(null_dist2) +
 
 ![](data-analysis_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
-Since our p-value of 0.528 is greater than our significance level of
+Since our p-value of 0.614 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
 convincing evidence that there is a significant difference between the
 median GDP of North African countries comapred to sub-Saharan countries.
@@ -558,7 +561,7 @@ full_neg_deltaGDP_model <- lm(
     )
 ```
 
-Now we can perform our backwards step function, optimizing for a higher
+Now we can perform our backwards step function, optimizing for a lower
 value for AIC.
 
 ``` r
