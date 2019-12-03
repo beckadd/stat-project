@@ -212,13 +212,13 @@ any given year for a independent country. The difference in these
 proportions is 0.094320737.
 
 We’d like to conduct a hypothesis test to see if there is a significant
-difference in proportions of systemic crises between independent and
-non-independent countries across all African countries. Our null
-hypothesis is that the proportion of systemic crises between independent
-and non-independent African countries is the same; the observed
-difference is due to chance. Our alternative hypothesis is that the
-proportion of systemic crises between independent and non-independent
-African countries is different.
+difference in the proportion of years with systemic crises between
+independent and non-independent countries across all African countries.
+Our null hypothesis is that the proportion of years with systemic crises
+between independent and non-independent African countries is the same;
+the observed difference is due to chance. Our alternative hypothesis is
+that the proportion of years with systemic crises between independent
+and non-independent African countries is different.
 
 Since we’re testing for independence, we’ll use permutation. We’ll
 modify our dataset slightly by factoring success into a categorical
@@ -261,8 +261,8 @@ visualize(null_dist) +
 
 Since our p-value of 0 is less than our significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
-there is a difference in the proportion of systemic crises between
-non-independent and independent African
+there is a difference in the proportion of years with systemic crises
+between non-independent and independent African
 countries.
 
 ## Question 2: Hypothesis Testing
@@ -364,8 +364,8 @@ median GDP among all North African and sub-Saharan countries?
 
 Our null hypothesis is that the median GDP of North African and
 sub-Saharan countries is the same; the observed difference is due to
-chance. Our alternative hypothesis is that the median GDP of independent
-and non-independent African countries is different.
+chance. Our alternative hypothesis is that the median GDP of North
+African and sub-Saharan African countries is different.
 
 Since we’re testing for independence, we’ll use permute.
 
@@ -402,8 +402,8 @@ Since our p-value of 0.528 is greater than our significance level of
 convincing evidence that there is a significant difference between the
 median GDP of North African countries comapred to sub-Saharan countries.
 
-Next, let’s calculate the proportion of systemic crises for North
-African and sub-Saharan countries.
+Next, let’s calculate the proportion of years with systemic crises for
+North African and sub-Saharan countries.
 
 ``` r
 africa %>%
@@ -417,19 +417,19 @@ africa %>%
     ## 1 n                   0.0436
     ## 2 s                   0.0972
 
-The proportion of systemic crises for North African countries is 0.0436;
-the proportion of systemic crises for sub-Saharan countries is 0.0971.
-The difference is 0.0535702.
+The proportion of years with systemic crises for North African countries
+is 0.0436; the proportion of years with systemic crises for sub-Saharan
+countries is 0.0971. The difference is 0.0535702.
 
-The second research question we’ll ask is: is there a difference in
-proportion of systemic crises between all North African and sub-Saharan
-countries?
+The second research question we’ll ask is: is there a difference in the
+proportion of years with systemic crises between all North African and
+sub-Saharan countries?
 
-Our null hypothesis is that the proportion of systemic crises between
-North African and sub-Saharan countries is the same; the observed
-difference is due to chance. Our alternative hypothesis is that the
-proportion of systemic crises between North African and sub-Saharan
-countries is different.
+Our null hypothesis is that the proportion of years with systemic crises
+between North African and sub-Saharan countries is the same; the
+observed difference is due to chance. Our alternative hypothesis is that
+the proportion of years with systemic crises between North African and
+sub-Saharan countries is different.
 
 Since we’re testing for independence, we’ll use permute.
 
@@ -460,8 +460,8 @@ visualize(null_dist3) +
 
 Since our p-value of 0 is less than the significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
-there is a difference in proportion of systemic crises between North
-African countries and sub-Saharan countries.
+there is a difference in the proportion of years with systemic crises
+between North African countries and sub-Saharan countries.
 
 ### Question 3: Fitting a linear regression model
 

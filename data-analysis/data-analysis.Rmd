@@ -161,7 +161,7 @@ africa %>%
 
 Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent country, while there is a 9.85% chance of a systemic crisis occurring in any given year for a independent country. The difference in these proportions is 0.094320737. 
 
-We'd like to conduct a hypothesis test to see if there is a significant difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
+We'd like to conduct a hypothesis test to see if there is a significant difference in the proportion of years with systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of years with systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of years with systemic crises between independent and non-independent African countries is different. 
 
 Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer.
 
@@ -188,7 +188,7 @@ visualize(null_dist) +
        y = "Count")
 ```
 
-Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in the proportion of systemic crises between non-independent and independent African countries.
+Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in the proportion of years with systemic crises between non-independent and independent African countries.
 
 ## Question 2: Hypothesis Testing
 
@@ -267,7 +267,7 @@ The average GDP for North African countries is `r rmg[1]`; the average GDP for s
 
 The first research question we'll ask is: is there a difference in median GDP among all North African and sub-Saharan countries?
 
-Our null hypothesis is that the median GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the median GDP of independent and non-independent African countries is different. 
+Our null hypothesis is that the median GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the median GDP of North African and sub-Saharan African countries is different. 
 
 Since we're testing for independence, we'll use permute.
 ```{r gdp-prop-diff}
@@ -290,7 +290,7 @@ visualize(null_dist2) +
 
 Since our p-value of 0.528 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a significant difference between the median GDP of North African countries comapred to sub-Saharan countries.
 
-Next, let's calculate the proportion of systemic crises for North African and sub-Saharan countries. 
+Next, let's calculate the proportion of years with systemic crises for North African and sub-Saharan countries. 
 
 ```{r systemic-crisis-by-region}
 africa %>%
@@ -298,12 +298,11 @@ africa %>%
   summarise(overall_crisis_prop = sum(systemic_crisis)/n())
 ```
 
-The proportion of systemic crises for North African countries is 0.0436; the proportion of systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0535702.
+The proportion of years with systemic crises for North African countries is 0.0436; the proportion of years with systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0535702.
 
+The second research question we'll ask is: is there a difference in the proportion of years with systemic crises between all North African and sub-Saharan countries?
 
-The second research question we'll ask is: is there a difference in proportion of systemic crises between all North African and sub-Saharan countries?
-
-Our null hypothesis is that the proportion of systemic crises between North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of systemic crises between North African and sub-Saharan countries is different. 
+Our null hypothesis is that the proportion of years with systemic crises between North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of years with systemic crises between North African and sub-Saharan countries is different. 
 
 Since we're testing for independence, we'll use permute.
 ```{r region-prop-diff}
@@ -321,7 +320,7 @@ visualize(null_dist3) +
   Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
 ```
 
-Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in proportion of systemic crises between North African countries and sub-Saharan countries.
+Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in the proportion of years with systemic crises between North African countries and sub-Saharan countries.
 
 ### Question 3: Fitting a linear regression model
 
