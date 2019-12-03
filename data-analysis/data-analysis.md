@@ -121,9 +121,23 @@ options(scipen = 999)
 
 #### Was an economic crisis more likely following n years after decolonization?
 
-From history, we’ve known that Consider the following: for each country,
-we’ll determine how many years after independence a country will
-typically experience its next crisis.
+As African countries made a transition to becoming independent states,
+many were plagued by violence or political unrest. A bloody 10-year war
+in Algeria culminated in its independence; lengthy wars were fought in
+Angola and Mozambique, sectional divides fraught the Congo, and a
+political revolt ocurred in Kenya. Many of these movements brought
+economic instability to their countries. However, at the same time,
+these independence movements were fought in the hopes that establishing
+an independent nation would bring greater economic prosperity and
+stability to their country.
+
+Thus, on a broad level, we’d like to determine how these independence
+movements ultimately affected the stability of their countries’
+economies.
+
+Let’s first do some exploratory data anlysis. For each country, let’s
+ask: how many years after independence will a country typically
+experience its next crisis?
 
 ``` r
 output <- tibble(country = distinct(africa, country)$country)
@@ -167,10 +181,11 @@ We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
 an interquartile range of 11 years and a mean of 31.3 years.
 
-We’re really interested in the economic stability of independent
-vs. colonized African countries. In particular, we’re wondering if
-post-independence African countries see a higher proportion of systemic
-crises (per year) compared to before independence. Let’s examine it:
+This is fascinating, but we’re more interested in seeing if there’s a
+difference in the economic stability of independent vs. colonized
+African countries. In particular, we’re wondering if post-independence
+African countries see a higher proportion of systemic crises (per year)
+compared to before independence. Let’s examine it:
 
 ``` r
 africa %>%
