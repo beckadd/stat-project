@@ -121,8 +121,9 @@ options(scipen = 999)
 
 #### Was an economic crisis more likely following n years after decolonization?
 
-Consider the following: for each country, we’ll determine how many years
-after independence a country will typically experience its next crisis.
+From history, we’ve known that Consider the following: for each country,
+we’ll determine how many years after independence a country will
+typically experience its next crisis.
 
 ``` r
 output <- tibble(country = distinct(africa, country)$country)
@@ -269,10 +270,20 @@ countries.
 
 #### Is there a difference between GDP and systemic crises in North African and sub-Saharan African countries?
 
-We’re interested in seeing if there’s a noticeable difference in
-economic stability and prosperity between North African and sub-Saharan
-African countries. We can evaluate this using data for GDP and systemic
-crises.
+Today, many newspapers, academics, and policymakers classify Africa into
+two broad regions. There’s North Africa, consisting of nations like
+Algeria and Morocco, and sub-Saharan Africa, which conists of countries
+ranging from the Central African Republic to Botswana. Traditionally,
+people associate sub-Saharan Africa with being less developed and more
+impoverished compared to the rest of the continent. In recent years,
+reports by the World Bank have claimed that more and more of the world’s
+poor are being concentrated into a few sub-Saharan countries.
+
+We set out to see if this is claim is true; that is, if there’s a
+noticeable difference in economic stability and prosperity between North
+African and sub-Saharan African countries. We can evaluate these claims
+by analyzing our data on each country’s GDP and the proportion of years
+with systemic crises for each country.
 
 To answer this question, we need to label North African and sub-Saharan
 countries in our Africa dataset.
@@ -462,6 +473,15 @@ Since our p-value of 0 is less than the significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
 there is a difference in the proportion of years with systemic crises
 between North African countries and sub-Saharan countries.
+
+From our results, we can conclude that historically — when accounting
+for all years from the 19th century to today — sub-Saharan African
+countries have been more prone to systemic crises than North African
+countries. Yet we failed to find a difference in the 2014 GDP between
+North African countries and sub-Saharan African countries. That’s a
+positive sign, because it shows that even though there have been
+historical disparities, in the 21st century, sub-Saharan Africa is
+catching up, if not meeting, to the economies of North Africa.
 
 ### Question 3: Fitting a linear regression model
 
