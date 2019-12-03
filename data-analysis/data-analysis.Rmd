@@ -6,12 +6,14 @@ output: github_document
 ---
 
 ```{r load-packages, message = F}
-#install.packages("countrycode") - already installed
-#install.packages("infer")
+
+#install.packages(c("infer","countrycode","pracma"))
 library(infer)
 library(tidyverse)
 library(countrycode)
-
+library(pracma)
+library(broom)
+library(knitr)
 ```
 
 ```{r load-data, message = F, warning = F}
@@ -42,6 +44,9 @@ gdps <- gdps %>%
 
 african_gdps <- gdps %>%
   merge(., africa, by = c("country","cc3","year"))
+
+african_gdps$year <- african_gdps$year %>%
+  as.numeric()
 
 global <- global[-1,] %>%
   select(-`<`) %>%
@@ -90,6 +95,8 @@ global <- global[-1,] %>%
       inflat_crises
     ))
   )
+
+options(scipen = 999)
 ```
 
 ## Question 1: Hypothesis Testing
@@ -137,11 +144,11 @@ africa %>%
   summarise(overall_crisis_prop = sum(systemic_crisis)/n())
 ```
 
-Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent country, while there is a 9.85% chance of a systemic crisis occurring in any given year for a independent country. The difference in proportions is 0.094320737. 
+Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent country, while there is a 9.85% chance of a systemic crisis occurring in any given year for a independent country. The difference in these proportions is 0.094320737. 
 
-We'd like to conduct a hypothesis test to see if there is a difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
+We'd like to conduct a hypothesis test to see if there is a significant difference in proportions of systemic crises between independent and non-independent countries across all African countries. Our null hypothesis is that the proportion of systemic crises between independent and non-independent African countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of systemic crises between independent and non-independent African countries is different. 
 
-Since we're testing for independence, we'll use permute. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer.
+Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer.
 
 Before we run the hypothesis test, we need to quickly factor systemic_crisis to be a categorical variable:
 ```{r systemic-categorical}
@@ -175,6 +182,7 @@ Since our p-value of 0 is less than our significance level of 0.05, we reject th
 We're interested in seeing if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate this using data for GDP and systemic crises.
 
 To answer this question, we need to label North African and sub-Saharan countries in our Africa dataset. 
+
 ``` {r label-region}
 fct_africa <- fct_africa %>%
   mutate(region = case_when(
@@ -230,12 +238,17 @@ Let's calculate the median GDP for North African and sub-Saharan countries.
 
 When calculating GDP by region, we'll use 2014 GDP data since it's recent and available for all 13 African countries in our dataset. 
 ```{r GDP-region-split}
-african_gdps %>%
+regional_mean_gdps <- african_gdps %>%
   filter(year == 2014) %>%
   group_by(region) %>%
   summarise(avg_gdp = median(gdp))
+
+regional_mean_gdps
+
+rmg <- regional_mean_gdps %>%
+  pull(avg_gdp)
 ```
-The average GDP for North African countries is \$110,081,000,000; the average GDP for sub-Saharan countries is \$44,299,338,704. Therefore, the difference in median GDP between North African and sub-Saharan countries is $65,781,661,296.
+The average GDP for North African countries is `r rmg[1]`; the average GDP for sub-Saharan countries is `r rmg[2]`. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])`.
 
 The first research question we'll ask is: is there a difference in median GDP among all North African and sub-Saharan countries?
 
@@ -253,14 +266,14 @@ null_dist2 <- gdp_2014 %>%
   generate(1000, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
-get_p_value(null_dist2, obs_stat = 65781661296, direction = "two_sided")
+get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
 visualize(null_dist2) +
   shade_p_value(65781661296, "both") +
   labs(title = "Null Distribution of Difference in 2014 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
 ```
 
-Since our p-value of 0.528 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a difference between the median GDP of North African countries comapred to sub-Saharan countries.
+Since our p-value of 0.528 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a significant difference between the median GDP of North African countries comapred to sub-Saharan countries.
 
 Next, let's calculate the proportion of systemic crises for North African and sub-Saharan countries. 
 
@@ -269,7 +282,9 @@ africa %>%
   group_by(region) %>%
   summarise(overall_crisis_prop = sum(systemic_crisis)/n())
 ```
+
 The proportion of systemic crises for North African countries is 0.0436; the proportion of systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0535702.
+
 
 The second research question we'll ask is: is there a difference in proportion of systemic crises between all North African and sub-Saharan countries?
 
@@ -293,4 +308,59 @@ visualize(null_dist3) +
 
 Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that there is a difference in proportion of systemic crises between North African countries and sub-Saharan countries.
 
+### Question 3: Fitting a linear regression model
 
+Finally, we want to see what factors influence a country's GDP the most, as we want to by extension understand what factors most strongly predict economic crises in Africa. Since we cannot (currently) use a binary factor such as `systemic crisis` to determine whether an economy is in crisis or not, we will define "crisis" in terms of GDP growth. If year-on-year GDP growth is negative, we can say that the economy is either recessing or in crisis; for the sake of this examination, we will take both of these to indicate crisis. There is past evidence to show that negative GDP growth is indicative of a crisis, as the 2008 recession saw widespread GDP stagnation or decline. Therefore, we will optimize our model to increase "negative GDP growth". 
+
+First and foremost, we must find the difference in GDP growth between every year in the dataset, for each country.
+
+```{r derivative-country-GDPs}
+
+african_gdps <- african_gdps %>%
+  group_by(country) %>%
+  mutate(
+    gdpdelta = gdp - lag(gdp, default = gdp[1])
+  ) %>%
+  mutate(
+    neg_gdpdelta = -gdpdelta
+  ) %>%
+  select(-gdpdelta)
+
+```
+
+Notice that the gdpdelta has been negated - for our model, we want to optimize for an increasingly negative delta GDP, which indicates decline.
+
+Before we perform a backwards step to see which factors are most influential in an increasingly negative delta GDP, we have our "full" model, with all of the variables. Additionally, we have examined the interaction between the `crisis` variables, and the interaction between sovereign and domestic debt in default.
+
+```{r full-model}
+full_neg_deltaGDP_model <- lm(
+  neg_gdpdelta ~ 
+    year +
+    gdp +
+    systemic_crisis +
+    exch_usd +
+    domestic_debt_in_default +
+    sovereign_external_debt_default +
+    gdp_weighted_default +
+    inflation_annual_cpi +
+    independence +
+    currency_crises +
+    inflation_crises +
+    banking_crisis +
+    banking_crisis*inflation_crises*currency_crises*systemic_crisis +
+    domestic_debt_in_default*sovereign_external_debt_default,
+  african_gdps
+    )
+```
+
+Now we can perform our backwards step function, optimizing for a higher value for AIC.
+
+```{r step-func-AIC, output = "hide"}
+best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
+
+glance(best_aic)
+
+tidy(best_aic) %>%
+  select(term, estimate) %>%
+  kable(format = "markdown", digits = 3)
+```
