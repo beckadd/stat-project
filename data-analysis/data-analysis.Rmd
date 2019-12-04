@@ -2,7 +2,9 @@
 title: "An Analysis of African Systemic Crises"
 author: "Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop"
 date: "12/3/2019"
-output: github_document
+output: 
+  github_document:
+    pandoc_args: --webtex
 ---
 
 ```{r load-packages, message = F}
@@ -17,10 +19,14 @@ library(knitr)
 library(plotly)
 ```
 
-```{r load-data, message = F, warning = F}
+```{r load-data-and-initialization, message = F, warning = F}
 africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
+
+tests <- 1000
+
+options(scipen = 999)
 ```
 
 Our analysis begins with two datasets: our original African economic crises dataset, which contains numerical variables like inflation rate, exchange rate against the US dollar, and debt vs. GDP ratio. Another helpful variable to analyze would be each country's GDP, so we downloaded world GDP data from the World Bank, and joined this data with our Africa dataset. We then cleaned up the dataset by renaming some variables and changing their types from integers to booleans.
@@ -110,8 +116,6 @@ global <- global[-1,] %>%
       inflat_crises
     ))
   )
-
-options(scipen = 999)
 ```
 
 ## Question 1: Hypothesis Testing
@@ -122,6 +126,7 @@ As African countries made a transition to becoming independent states, many were
 Thus, on a broad level, we'd like to determine how these independence movements ultimately affected the stability of their countries' economies.  
 
 Let's first do some exploratory data anlysis. For each country, let's ask: how many years after independence will a country typically experience its next crisis?
+
 ```{r independence}
 output <- tibble(country = distinct(africa, country)$country)
 output$independence_year <- africa %>%
@@ -180,7 +185,7 @@ null_dist <- fct_africa %>%
   specify(response = systemic_crisis, explanatory = independence, 
           success = "1") %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
 get_p_value(null_dist, obs_stat = 0.094320737, direction = "both")
@@ -284,7 +289,7 @@ gdp_2014 <- african_gdps %>%
 null_dist2 <- gdp_2014 %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
 get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
@@ -316,7 +321,7 @@ set.seed(1)
 null_dist3 <- fct_africa %>%
   specify(response = systemic_crisis, explanatory = region, success = "1") %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("n", "s"))
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "two_sided")
@@ -330,7 +335,7 @@ Since our p-value of 0 is less than the significance level of 0.05, we reject th
 
 From our results, we can conclude that historically — when accounting for all years from the 19th century to today — sub-Saharan African countries have been more prone to systemic crises than North African countries. Yet we failed to find a difference in the 2014 GDP between North African countries and sub-Saharan African countries. That's a positive sign, because it shows that even though there have been historical disparities, in the 21st century, sub-Saharan Africa is catching up, if not meeting, to the economies of North Africa.
 
-### Question 3: Fitting a linear regression model
+## Question 3: Fitting a linear regression model
 
 Finally, we want to see what factors influence a country's GDP the most, as we want to by extension understand what factors most strongly predict economic crises in Africa. Since we cannot (currently) use a binary factor such as `systemic crisis` to determine whether an economy is in crisis or not, we will define "crisis" in terms of GDP growth. If year-on-year GDP growth is negative, we can say that the economy is either recessing or in crisis; for the sake of this examination, we will take both of these to indicate crisis. There is past evidence to show that negative GDP growth is indicative of a crisis, as the 2008 recession saw widespread GDP stagnation or decline. Therefore, we will optimize our model to increase "negative GDP growth". 
 
@@ -389,12 +394,55 @@ tidy(best_aic) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-Now, we are going to calculate the r-value. We are going to be using a R adjusted value because there are multiple variables in the model.
+Now, we are going to calculate the r-squared value. We are going to be using the adjusted r-squared value because this is a multiple regression.
 
 ``` {r r-value-best-aic-model}
- glance(best_aic)$adj.r.squared
+glance(best_aic)$adj.r.squared
+
+glance(best_aic)$p.value
 ```
 
-As calculated above, the adjusted R squared value is 0.3174919. 
+As calculated above, the adjusted R squared value is 0.3174919; since the p-value of this model according to the Central Limit Theorem is much less than 0.05 at $1.79 \times 10^{-43}$ (in effect, p = 0), we can safely conclude that this model shows a statistically significant positive correlation between an African country's negative change in GDP and the country's debt-to-GDP ratio and the presence of either a currency or inflation crisis. To ensure that this model is, in fact, able to be inferred upon, we will also confirm that the model fits the four criteria required for inference for regression:
 
+#### Are observations independent?
 
+Note - this code has been borrowed from the following slide and modified for the purposes of this assignment: https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40
+```{r obs-indep-test}
+best_aic_aug <- augment(best_aic)
+ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
+  geom_point() +
+  labs(x = "Index", y = "Residual")
+```
+While it may not at first be evident that these points are independent, this is in large part due to the immense y-axis. Zooming in closer to zero, we can see a more random-looking spread.
+
+```{r obs-indep-test-zoom}
+best_aic_aug <- augment(best_aic)
+ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
+  geom_point() +
+  labs(x = "Index", y = "Residual") +
+  ylim(-50000000000/8, 50000000000/8)
+```
+As we can now see more clearly, the spread indicates that there is no trend that would imply dependence between residuals.
+
+#### Are residuals randomly distributed, and are they constantly variant?
+
+Again, this code has been borrowed from the lecture slides: 
+
+```{r dist-and-variance-resids}
+ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(y = "Residuals", x = "Predicted values, y-hat")
+```
+
+!!!!! How do we interpret this spread?
+
+#### Are residuals normally distributed around 0?
+
+```{r resids-normal-dist}
+ggplot(data = best_aic_aug, aes(x = .resid)) +
+  geom_histogram(bins = 75) +
+  labs(x = "Residuals")
+```
+
+As we can see, the residuals are in fact distributed around 0 with a distribution that can be described as being approximately normal.

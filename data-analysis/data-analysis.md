@@ -18,6 +18,10 @@ library(plotly)
 africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
+
+tests <- 1000
+
+options(scipen = 999)
 ```
 
 Our analysis begins with two datasets: our original African economic
@@ -113,8 +117,6 @@ global <- global[-1,] %>%
       inflat_crises
     ))
   )
-
-options(scipen = 999)
 ```
 
 ## Question 1: Hypothesis Testing
@@ -254,7 +256,7 @@ null_dist <- fct_africa %>%
   specify(response = systemic_crisis, explanatory = independence, 
           success = "1") %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
 get_p_value(null_dist, obs_stat = 0.094320737, direction = "both")
@@ -406,7 +408,7 @@ gdp_2014 <- african_gdps %>%
 null_dist2 <- gdp_2014 %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
 get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
@@ -467,7 +469,7 @@ set.seed(1)
 null_dist3 <- fct_africa %>%
   specify(response = systemic_crisis, explanatory = region, success = "1") %>%
   hypothesize(null = "independence") %>%
-  generate(1000, type = "permute") %>%
+  generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("n", "s"))
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "two_sided")
@@ -501,7 +503,7 @@ positive sign, because it shows that even though there have been
 historical disparities, in the 21st century, sub-Saharan Africa is
 catching up, if not meeting, to the economies of North Africa.
 
-### Question 3: Fitting a linear regression model
+## Question 3: Fitting a linear regression model
 
 Finally, we want to see what factors influence a country’s GDP the most,
 as we want to by extension understand what factors most strongly predict
@@ -574,13 +576,91 @@ tidy(best_aic) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-Now, we are going to calculate the r-value. We are going to be using a R
-adjusted value because there are multiple variables in the model.
+Now, we are going to calculate the r-squared value. We are going to be
+using the adjusted r-squared value because this is a multiple
+regression.
 
 ``` r
- glance(best_aic)$adj.r.squared
+glance(best_aic)$adj.r.squared
 ```
 
     ## [1] 0.3174919
 
-As calculated above, the adjusted R squared value is 0.3174919.
+``` r
+glance(best_aic)$p.value
+```
+
+    ## [1] 0.0000000000000000000000000000000000000000001787544
+
+As calculated above, the adjusted R squared value is 0.3174919; since
+the p-value of this model according to the Central Limit Theorem is much
+less than 0.05 at ![1.79
+\\times 10^{-43}](https://latex.codecogs.com/png.latex?1.79%20%5Ctimes%2010%5E%7B-43%7D
+"1.79 \\times 10^{-43}") (in effect, p = 0), we can safely conclude that
+this model shows a statistically significant positive correlation
+between an African country’s negative change in GDP and the country’s
+debt-to-GDP ratio and the presence of either a currency or inflation
+crisis. To ensure that this model is, in fact, able to be inferred upon,
+we will also confirm that the model fits the four criteria required for
+inference for regression:
+
+#### Are observations independent?
+
+Note - this code has been borrowed from the following slide and modified
+for the purposes of this assignment:
+<https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40>
+
+``` r
+best_aic_aug <- augment(best_aic)
+ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
+  geom_point() +
+  labs(x = "Index", y = "Residual")
+```
+
+![](data-analysis_files/figure-gfm/obs-indep-test-1.png)<!-- --> While
+it may not at first be evident that these points are independent, this
+is in large part due to the immense y-axis. Zooming in closer to zero,
+we can see a more random-looking spread.
+
+``` r
+best_aic_aug <- augment(best_aic)
+ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
+  geom_point() +
+  labs(x = "Index", y = "Residual") +
+  ylim(-50000000000/8, 50000000000/8)
+```
+
+    ## Warning: Removed 72 rows containing missing values (geom_point).
+
+![](data-analysis_files/figure-gfm/obs-indep-test-zoom-1.png)<!-- --> As
+we can now see more clearly, the spread indicates that there is no trend
+that would imply dependence between
+residuals.
+
+#### Are residuals randomly distributed, and are they constantly variant?
+
+Again, this code has been borrowed from the lecture slides:
+
+``` r
+ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(y = "Residuals", x = "Predicted values, y-hat")
+```
+
+![](data-analysis_files/figure-gfm/dist-and-variance-resids-1.png)<!-- -->
+
+\!\!\!\!\! How do we interpret this spread?
+
+#### Are residuals normally distributed around 0?
+
+``` r
+ggplot(data = best_aic_aug, aes(x = .resid)) +
+  geom_histogram(bins = 75) +
+  labs(x = "Residuals")
+```
+
+![](data-analysis_files/figure-gfm/resids-normal-dist-1.png)<!-- -->
+
+As we can see, the residuals are in fact distributed around 0 with a
+distribution that can be described as being approximately normal.
