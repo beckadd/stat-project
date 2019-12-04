@@ -378,7 +378,7 @@ full_neg_deltaGDP_model <- lm(
 
 Now we can perform our backwards step function, optimizing for a lower value for AIC.
 
-```{r step-func-AIC, output = "hide"}
+```{r step-func-AIC, results = "hide"}
 
 best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
 
