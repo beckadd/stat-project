@@ -19,7 +19,7 @@ africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 
-tests <- 1000
+tests <- 100
 
 options(scipen = 999)
 ```
@@ -434,7 +434,7 @@ get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
     ## # A tibble: 1 x 1
     ##   p_value
     ##     <dbl>
-    ## 1   0.678
+    ## 1     0.8
 
 ``` r
 visualize(null_dist2) +
@@ -448,7 +448,7 @@ visualize(null_dist2) +
 Since our p-value of 0.678 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
 convincing evidence that there is a significant difference between the
-median 2013 GDP of North African countries comapred to sub-Saharan
+median 2013 GDP of North African countries compared to sub-Saharan
 countries.
 
 Next, let’s calculate the proportion of years with systemic crises for
@@ -535,6 +535,8 @@ that negative GDP growth is indicative of a crisis, as the 2008
 recession saw widespread GDP stagnation or decline. Therefore, we will
 optimize our model to increase “negative GDP growth”.
 
+#### Modifying the dataset and exploratory data analysis
+
 First and foremost, we must find the difference in GDP growth between
 every year in the dataset, for each country.
 
@@ -553,6 +555,36 @@ african_gdps <- african_gdps %>%
 Notice that the gdpdelta has been negated - for our model, we want to
 optimize for an increasingly negative delta GDP, which indicates
 decline.
+
+Now, while we can’t show with our current stats knowledge whether the
+occurrence of a systemic crisis and negative GDP growth are related, we
+can at least show anecdotally that median negative GDP growth in and out
+of economic crisis. We use median to examine the center of GDP growth as
+the distribution of GDP growth is skewed left.
+
+``` r
+african_gdps %>%
+  filter(!is.na(neg_deltagdp)) %>%
+  group_by(systemic_crisis) %>%
+  summarise(
+    median_negdeltaGDP = median(neg_deltagdp),
+    iqr_negdeltaGDP = IQR(neg_deltagdp),
+  )
+```
+
+    ## # A tibble: 2 x 3
+    ##   systemic_crisis median_negdeltaGDP iqr_negdeltaGDP
+    ##   <fct>                        <dbl>           <dbl>
+    ## 1 0                       -400305237     2580219032.
+    ## 2 1                        -63907542     1206716865
+
+While there is still evidence of positive growth, it is clear that, at
+least within our sample, the median negative GDP growth is greater
+during crisis than out of crisis, and within our sample the
+interquartile range for crisis negative GDP growth is much less,
+indicating less variability than no crisis GDP growth.
+
+#### Creation, refinement, and analysis of a regression model
 
 Before we perform a backwards step to see which factors are most
 influential in an increasingly negative delta GDP, we have our “full”
@@ -705,3 +737,7 @@ ggplot(data = best_aic_aug, aes(x = .resid)) +
 
 As we can see, the residuals are in fact distributed around 0 with a
 distribution that can be described as being approximately normal.
+
+Taking all of this into account, we can reasonably use this model to
+infer a negative change in GDP for an African country, given that
+variables needed by our model are present.
