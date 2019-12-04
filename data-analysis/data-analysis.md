@@ -604,11 +604,6 @@ tidy(best_aic) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-<<<<<<< HEAD
-Now, we are going to calculate the r-squared value. We are going to be
-using the adjusted r-squared value because this is a multiple
-regression.
-=======
 | term                                 |         estimate |
 | :----------------------------------- | ---------------: |
 | (Intercept)                          |  \-366494257.942 |
@@ -618,9 +613,9 @@ regression.
 | inflation\_crises1                   |   3493307347.953 |
 | currency\_crises1:inflation\_crises1 | \-7405531522.450 |
 
-Now, we are going to calculate the r-value. We are going to be using a R
-adjusted value because there are multiple variables in the model.
->>>>>>> 1938fcba8d31da142815accc9befc09abcee64e6
+Now, we are going to calculate the r-squared value. We are going to be
+using the adjusted r-squared value because this is a multiple
+regression.
 
 ``` r
 glance(best_aic)$adj.r.squared
@@ -659,10 +654,11 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   labs(x = "Index", y = "Residual")
 ```
 
-![](data-analysis_files/figure-gfm/obs-indep-test-1.png)<!-- --> While
-it may not at first be evident that these points are independent, this
-is in large part due to the immense y-axis. Zooming in closer to zero,
-we can see a more random-looking spread.
+![](data-analysis_files/figure-gfm/obs-indep-test-1.png)<!-- -->
+
+While it may not at first be evident that these points are independent,
+this is in large part due to the immense y-axis. Zooming in closer to
+zero, we can see a more random-looking spread.
 
 ``` r
 best_aic_aug <- augment(best_aic)
@@ -674,14 +670,15 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
 
     ## Warning: Removed 72 rows containing missing values (geom_point).
 
-![](data-analysis_files/figure-gfm/obs-indep-test-zoom-1.png)<!-- --> As
-we can now see more clearly, the spread indicates that there is no trend
-that would imply dependence between
+![](data-analysis_files/figure-gfm/obs-indep-test-zoom-1.png)<!-- -->
+
+As we can now see more clearly, the spread indicates that there is no
+trend that would imply dependence between
 residuals.
 
 #### Are residuals randomly distributed, and are they constantly variant?
 
-Again, this code has been borrowed from the lecture slides:
+(Again, this code has been borrowed from the lecture slides)
 
 ``` r
 ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
@@ -695,6 +692,8 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
 \!\!\!\!\! How do we interpret this spread?
 
 #### Are residuals normally distributed around 0?
+
+(Again, this code has been borrowed from the lecture slides)
 
 ``` r
 ggplot(data = best_aic_aug, aes(x = .resid)) +

@@ -420,12 +420,14 @@ As calculated above, the adjusted R squared value is 0.3174919; since the p-valu
 #### Are observations independent?
 
 Note - this code has been borrowed from the following slide and modified for the purposes of this assignment: https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40
+
 ```{r obs-indep-test}
 best_aic_aug <- augment(best_aic)
 ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   geom_point() +
   labs(x = "Index", y = "Residual")
 ```
+
 While it may not at first be evident that these points are independent, this is in large part due to the immense y-axis. Zooming in closer to zero, we can see a more random-looking spread.
 
 ```{r obs-indep-test-zoom}
@@ -435,11 +437,12 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   labs(x = "Index", y = "Residual") +
   ylim(-50000000000/8, 50000000000/8)
 ```
+
 As we can now see more clearly, the spread indicates that there is no trend that would imply dependence between residuals.
 
 #### Are residuals randomly distributed, and are they constantly variant?
 
-Again, this code has been borrowed from the lecture slides: 
+(Again, this code has been borrowed from the lecture slides)
 
 ```{r dist-and-variance-resids}
 ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
@@ -451,6 +454,8 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
 !!!!! How do we interpret this spread?
 
 #### Are residuals normally distributed around 0?
+
+(Again, this code has been borrowed from the lecture slides)
 
 ```{r resids-normal-dist}
 ggplot(data = best_aic_aug, aes(x = .resid)) +
