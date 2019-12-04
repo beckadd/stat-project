@@ -537,8 +537,40 @@ optimize our model to increase “negative GDP growth”.
 
 #### Modifying the dataset and exploratory data analysis
 
-First and foremost, we must find the difference in GDP growth between
-every year in the dataset, for each country.
+First and foremost, we will perform some exploratory data analysis on
+the change in GDP of African countries in the decade between 2003 and
+2013.
+
+``` r
+african_gdps_03131 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya"))
+
+african_gdps_03132 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe"))
+
+ggplot(data = african_gdps_03131, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
+  theme(axis.text.x = element_blank())
+```
+
+![](data-analysis_files/figure-gfm/gpd-change-1.png)<!-- -->
+
+``` r
+ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
+  theme(axis.text.x = element_blank()) 
+```
+
+![](data-analysis_files/figure-gfm/gpd-change-2.png)<!-- -->
+
+Next, we must find the difference in GDP growth between every year in
+the dataset, for each country.
 
 ``` r
 african_gdps <- african_gdps %>%
@@ -700,8 +732,6 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   ylim(-50000000000/8, 50000000000/8)
 ```
 
-    ## Warning: Removed 72 rows containing missing values (geom_point).
-
 ![](data-analysis_files/figure-gfm/obs-indep-test-zoom-1.png)<!-- -->
 
 As we can now see more clearly, the spread indicates that there is no
@@ -721,7 +751,25 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
 
 ![](data-analysis_files/figure-gfm/dist-and-variance-resids-1.png)<!-- -->
 
-\!\!\!\!\! How do we interpret this spread?
+Again, this may be difficult to interpret as random at first, but
+zooming into the area close to 0 for predicted values shows a more
+randomized spread.
+
+``` r
+ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(y = "Residuals", x = "Predicted values, y-hat") +
+  xlim(-10000000000, 0) +
+  ylim(-5000000000, 5000000000)
+```
+
+    ## Warning: Removed 191 rows containing missing values (geom_point).
+
+![](data-analysis_files/figure-gfm/dist-and-variance-resids-zoom-1.png)<!-- -->
+
+Like before, it is now much easier to see the randomness of the
+residuals.
 
 #### Are residuals normally distributed around 0?
 
