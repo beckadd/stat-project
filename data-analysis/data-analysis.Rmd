@@ -350,7 +350,31 @@ From our results, we can conclude that historically — when accounting for all 
 
 Finally, we want to see what factors influence a country's GDP the most, as we want to by extension understand what factors most strongly predict economic crises in Africa. Since we cannot (currently) use a binary factor such as `systemic crisis` to determine whether an economy is in crisis or not, we will define "crisis" in terms of GDP growth. If year-on-year GDP growth is negative, we can say that the economy is either recessing or in crisis; for the sake of this examination, we will take both of these to indicate crisis. There is past evidence to show that negative GDP growth is indicative of a crisis, as the 2008 recession saw widespread GDP stagnation or decline. Therefore, we will optimize our model to increase "negative GDP growth". 
 
-First and foremost, we must find the difference in GDP growth between every year in the dataset, for each country.
+First and foremost, we will perform some exploratory data analysis on the change in GDP of African countries in the decade between 2003 and 2013.
+
+```{r gpd-change}
+african_gdps_03131 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya"))
+
+african_gdps_03132 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe"))
+
+ggplot(data = african_gdps_03131, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($)") +
+  theme(axis.text.x = element_blank())
+
+ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($)") +
+  theme(axis.text.x = element_blank()) 
+```
+
+Next, we must find the difference in GDP growth between every year in the dataset, for each country.
 
 ```{r derivative-country-GDPs}
 
@@ -430,7 +454,7 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
 
 While it may not at first be evident that these points are independent, this is in large part due to the immense y-axis. Zooming in closer to zero, we can see a more random-looking spread.
 
-```{r obs-indep-test-zoom}
+```{r obs-indep-test-zoom, warning = F}
 best_aic_aug <- augment(best_aic)
 ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   geom_point() +

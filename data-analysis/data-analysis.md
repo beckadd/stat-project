@@ -535,8 +535,40 @@ that negative GDP growth is indicative of a crisis, as the 2008
 recession saw widespread GDP stagnation or decline. Therefore, we will
 optimize our model to increase “negative GDP growth”.
 
-First and foremost, we must find the difference in GDP growth between
-every year in the dataset, for each country.
+First and foremost, we will perform some exploratory data analysis on
+the change in GDP of African countries in the decade between 2003 and
+2013.
+
+``` r
+african_gdps_03131 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya"))
+
+african_gdps_03132 <- african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe"))
+
+ggplot(data = african_gdps_03131, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($)") +
+  theme(axis.text.x = element_blank())
+```
+
+![](data-analysis_files/figure-gfm/gpd-change-1.png)<!-- -->
+
+``` r
+ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
+  facet_grid(. ~ country) +
+  geom_line() +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($)") +
+  theme(axis.text.x = element_blank()) 
+```
+
+![](data-analysis_files/figure-gfm/gpd-change-2.png)<!-- -->
+
+Next, we must find the difference in GDP growth between every year in
+the dataset, for each country.
 
 ``` r
 african_gdps <- african_gdps %>%
@@ -667,8 +699,6 @@ ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
   labs(x = "Index", y = "Residual") +
   ylim(-50000000000/8, 50000000000/8)
 ```
-
-    ## Warning: Removed 72 rows containing missing values (geom_point).
 
 ![](data-analysis_files/figure-gfm/obs-indep-test-zoom-1.png)<!-- -->
 
