@@ -388,3 +388,13 @@ tidy(best_aic) %>%
   select(term, estimate) %>%
   kable(format = "markdown", digits = 3)
 ```
+
+Now, we are going to calculate the r-value. We are going to be using a R adjusted value because there are multiple variables in the model.
+
+``` {r r-value-best-aic-model}
+ glance(best_aic)$adj.r.squared
+```
+
+As calculated above, the adjusted R squared value is 0.3174919. 
+
+

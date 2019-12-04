@@ -1235,3 +1235,14 @@ tidy(best_aic) %>%
 | currency\_crises1                    |   5105526938.416 |
 | inflation\_crises1                   |   3493307347.953 |
 | currency\_crises1:inflation\_crises1 | \-7405531522.450 |
+
+Now, we are going to calculate the r-value. We are going to be using a R
+adjusted value because there are multiple variables in the model.
+
+``` r
+ glance(best_aic)$adj.r.squared
+```
+
+    ## [1] 0.3174919
+
+As calculated above, the adjusted R squared value is 0.3174919.
