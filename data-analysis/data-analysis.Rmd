@@ -200,7 +200,7 @@ Ultimately, we can conclude that after gaining independence, African countries e
 
 Today, many newspapers, academics, and policymakers classify Africa into two broad regions. There's North Africa, consisting of nations like Algeria and Morocco, and sub-Saharan Africa, which conists of countries ranging from the Central African Republic to Botswana. Traditionally, people associate sub-Saharan Africa with being less developed and more impoverished compared to the rest of the continent. In recent years, reports by the World Bank have claimed that more and more of the world's poor are being concentrated into a few sub-Saharan countries.
 
-We set out to see if this is claim is true; that is, if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate these claims by analyzing our data on each country's GDP and the proportion of years with systemic crises for each country.
+We set out to see if this is claim is true; that is, if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate these claims in two ways: by analyzing our data on each country's GDP and the proportion of years with systemic crises for each country.
 
 To answer this question, we need to label North African and sub-Saharan countries in our Africa dataset. 
 
@@ -257,19 +257,30 @@ african_gdps <- african_gdps %>%
 
 Let's calculate the median GDP for North African and sub-Saharan countries.
 
-When calculating GDP by region, we'll use 2014 GDP data since it's recent and available for all 13 African countries in our dataset. 
-```{r GDP-region-split}
-regional_mean_gdps <- african_gdps %>%
-  filter(year == 2014) %>%
+When calculating GDP by region, we'll use 2013 GDP data since it's recent and available for 11 of the 13 African countries in our dataset. We can also perform some exploratory data analysis by visualising sample median GDP.
+
+```{r GDP-region-split, warning = F}
+regional_med_gdps <- african_gdps %>%
+  filter(year == 2013) %>%
   group_by(region) %>%
-  summarise(avg_gdp = median(gdp))
+  summarise(med_gdp = median(gdp))
 
-regional_mean_gdps
+regional_med_gdps
 
-rmg <- regional_mean_gdps %>%
-  pull(avg_gdp)
+rmg <- regional_med_gdps %>%
+  pull(med_gdp)
+
+african_gdps_2013 <- african_gdps %>%
+  filter(year == 2013)
+
+ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
+  geom_boxplot() +
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
 ```
-The average GDP for North African countries is `r rmg[1]`; the average GDP for sub-Saharan countries is `r rmg[2]`. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])`.
+
+The IQR for sub-Saharan countries is much larger than the IQR for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country, which is an outlier for its region. However, the median 2014 GDP for sub-Saharan countries is less than North African countries.
+
+The median GDP for North African countries is `r rmg[1]`; the median GDP for sub-Saharan countries is `r rmg[2]`. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])`.
 
 The first research question we'll ask is: is there a difference in median GDP among all North African and sub-Saharan countries?
 
@@ -278,10 +289,10 @@ Our null hypothesis is that the median GDP of North African and sub-Saharan coun
 Since we're testing for independence, we'll use permute.
 ```{r gdp-prop-diff}
 set.seed(1)
-gdp_2014 <- african_gdps %>%
-  filter(year == 2014)
+gdp_2013 <- african_gdps %>%
+  filter(year == 2013)
 
-null_dist2 <- gdp_2014 %>%
+null_dist2 <- gdp_2013 %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
   generate(1000, type = "permute") %>%
@@ -289,12 +300,12 @@ null_dist2 <- gdp_2014 %>%
             order = c("n", "s"))
 get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
 visualize(null_dist2) +
-  shade_p_value(65781661296, "both") +
-  labs(title = "Null Distribution of Difference in 2014 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
+  shade_p_value(65254905755, "both") +
+  labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
 ```
 
-Since our p-value of 0.614 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a significant difference between the median GDP of North African countries comapred to sub-Saharan countries.
+Since our p-value of 0.678 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that there is a significant difference between the median 2013 GDP of North African countries comapred to sub-Saharan countries.
 
 Next, let's calculate the proportion of years with systemic crises for North African and sub-Saharan countries. 
 
@@ -381,7 +392,9 @@ Now we can perform our backwards step function, optimizing for a lower value for
 ```{r step-func-AIC, results = "hide"}
 
 best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
+```
 
+```{r final-model}
 glance(best_aic)
 
 tidy(best_aic) %>%
