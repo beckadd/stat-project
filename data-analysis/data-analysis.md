@@ -302,8 +302,8 @@ poor are being concentrated into a few sub-Saharan countries.
 We set out to see if this is claim is true; that is, if there’s a
 noticeable difference in economic stability and prosperity between North
 African and sub-Saharan African countries. We can evaluate these claims
-by analyzing our data on each country’s GDP and the proportion of years
-with systemic crises for each country.
+in two ways: by analyzing our data on each country’s GDP and the
+proportion of years with systemic crises for each country.
 
 To answer this question, we need to label North African and sub-Saharan
 countries in our Africa dataset.
@@ -362,33 +362,50 @@ african_gdps <- african_gdps %>%
 Let’s calculate the median GDP for North African and sub-Saharan
 countries.
 
-When calculating GDP by region, we’ll use 2014 GDP data since it’s
-recent and available for all 13 African countries in our dataset.
+When calculating GDP by region, we’ll use 2013 GDP data since it’s
+recent and available for 11 of the 13 African countries in our dataset.
+We can also perform some exploratory data analysis by visualising sample
+median GDP.
 
 ``` r
-regional_mean_gdps <- african_gdps %>%
-  filter(year == 2014) %>%
+regional_med_gdps <- african_gdps %>%
+  filter(year == 2013) %>%
   group_by(region) %>%
-  summarise(avg_gdp = median(gdp))
+  summarise(med_gdp = median(gdp))
 
-regional_mean_gdps
+regional_med_gdps
 ```
 
     ## # A tibble: 2 x 2
-    ##   region       avg_gdp
-    ##   <chr>          <dbl>
-    ## 1 n      110081000000 
-    ## 2 s       44299338704.
+    ##   region      med_gdp
+    ##   <chr>         <dbl>
+    ## 1 n      106826000000
+    ## 2 s       41571094245
 
 ``` r
-rmg <- regional_mean_gdps %>%
-  pull(avg_gdp)
+rmg <- regional_med_gdps %>%
+  pull(med_gdp)
+
+african_gdps_2013 <- african_gdps %>%
+  filter(year == 2013)
+
+ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
+  geom_boxplot() +
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
 ```
 
-The average GDP for North African countries is 110081000000; the average
-GDP for sub-Saharan countries is 44299338704.5. Therefore, the
-difference in median GDP between North African and sub-Saharan countries
-is 65781661295.5.
+![](data-analysis_files/figure-gfm/GDP-region-split-1.png)<!-- -->
+
+The IQR for sub-Saharan countries is much larger than the IQR for North
+African countries, demonstrating larger variability. The country with
+the greatest GDP is a sub-Saharan country, which is an outlier for its
+region. However, the median 2014 GDP for sub-Saharan countries is less
+than North African countries.
+
+The median GDP for North African countries is 106826000000; the median
+GDP for sub-Saharan countries is 41571094245. Therefore, the difference
+in median GDP between North African and sub-Saharan countries is
+65254905755.
 
 The first research question we’ll ask is: is there a difference in
 median GDP among all North African and sub-Saharan countries?
@@ -402,10 +419,10 @@ Since we’re testing for independence, we’ll use permute.
 
 ``` r
 set.seed(1)
-gdp_2014 <- african_gdps %>%
-  filter(year == 2014)
+gdp_2013 <- african_gdps %>%
+  filter(year == 2013)
 
-null_dist2 <- gdp_2014 %>%
+null_dist2 <- gdp_2013 %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
@@ -417,21 +434,22 @@ get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
     ## # A tibble: 1 x 1
     ##   p_value
     ##     <dbl>
-    ## 1   0.614
+    ## 1   0.678
 
 ``` r
 visualize(null_dist2) +
-  shade_p_value(65781661296, "both") +
-  labs(title = "Null Distribution of Difference in 2014 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
+  shade_p_value(65254905755, "both") +
+  labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
 ```
 
 ![](data-analysis_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
-Since our p-value of 0.614 is greater than our significance level of
+Since our p-value of 0.678 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
 convincing evidence that there is a significant difference between the
-median GDP of North African countries comapred to sub-Saharan countries.
+median 2013 GDP of North African countries comapred to sub-Saharan
+countries.
 
 Next, let’s calculate the proportion of years with systemic crises for
 North African and sub-Saharan countries.
@@ -568,17 +586,41 @@ value for AIC.
 
 ``` r
 best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
+```
 
+``` r
 glance(best_aic)
+```
 
+    ## # A tibble: 1 x 11
+    ##   r.squared adj.r.squared  sigma statistic  p.value    df  logLik    AIC
+    ##       <dbl>         <dbl>  <dbl>     <dbl>    <dbl> <int>   <dbl>  <dbl>
+    ## 1     0.324         0.317 9.58e9      51.3 1.79e-43     6 -13223. 26460.
+    ## # … with 3 more variables: BIC <dbl>, deviance <dbl>, df.residual <int>
+
+``` r
 tidy(best_aic) %>%
   select(term, estimate) %>%
   kable(format = "markdown", digits = 3)
 ```
 
+<<<<<<< HEAD
 Now, we are going to calculate the r-squared value. We are going to be
 using the adjusted r-squared value because this is a multiple
 regression.
+=======
+| term                                 |         estimate |
+| :----------------------------------- | ---------------: |
+| (Intercept)                          |  \-366494257.942 |
+| gdp                                  |          \-0.088 |
+| gdp\_weighted\_default               |  13990989692.545 |
+| currency\_crises1                    |   5105526938.416 |
+| inflation\_crises1                   |   3493307347.953 |
+| currency\_crises1:inflation\_crises1 | \-7405531522.450 |
+
+Now, we are going to calculate the r-value. We are going to be using a R
+adjusted value because there are multiple variables in the model.
+>>>>>>> 1938fcba8d31da142815accc9befc09abcee64e6
 
 ``` r
 glance(best_aic)$adj.r.squared
