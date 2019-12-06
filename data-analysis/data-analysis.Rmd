@@ -24,7 +24,7 @@ africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 
-tests <- 100
+tests <- 1000
 
 options(scipen = 999)
 ```
@@ -384,11 +384,7 @@ african_gdps <- african_gdps %>%
   group_by(country) %>%
   mutate(
     deltagdp = gdp - lag(gdp, default = gdp[1])
-  ) %>%
-  mutate(
-    neg_deltagdp = -deltagdp
-    ) %>%
-  select(-deltagdp)
+  )
 
 ```
 
@@ -398,11 +394,11 @@ Now, while we can't show with our current stats knowledge whether the occurrence
 
 ```{r crisis-and-negdeltaGDP}
 african_gdps %>%
-  filter(!is.na(neg_deltagdp)) %>%
+  filter(!is.na(deltagdp)) %>%
   group_by(systemic_crisis) %>%
   summarise(
-    median_negdeltaGDP = median(neg_deltagdp),
-    iqr_negdeltaGDP = IQR(neg_deltagdp),
+    median_deltaGDP = median(deltagdp),
+    iqr_deltaGDP = IQR(deltagdp),
   )
 ```
 
@@ -414,8 +410,8 @@ Before we perform a backwards step to see which factors are most influential in 
 
 ```{r full-model}
 
-full_neg_deltaGDP_model <- lm(
-  neg_deltagdp ~ 
+full_deltaGDP_model <- lm(
+  deltagdp ~ 
     year +
     gdp +
     systemic_crisis +
@@ -430,7 +426,7 @@ full_neg_deltaGDP_model <- lm(
     banking_crisis +
     banking_crisis*inflation_crises*currency_crises*systemic_crisis +
     domestic_debt_in_default*sovereign_external_debt_default,
-  filter(african_gdps, !is.na(neg_deltagdp))
+  filter(african_gdps, !is.na(deltagdp))
     )
 ```
 
@@ -438,14 +434,14 @@ Now we can perform our backwards step function, optimizing for a lower value for
 
 ```{r step-func-AIC, results = "hide"}
 
-best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
+best_aic <- step(full_deltaGDP_model, direction = "backward")
 ```
 
 ```{r final-model}
 glance(best_aic)
 
 tidy(best_aic) %>%
-  select(term, estimate) %>%
+  select(term, estimate, p.value) %>%
   kable(format = "markdown", digits = 3)
 ```
 
@@ -453,8 +449,6 @@ Now, we are going to calculate the r-squared value. We are going to be using the
 
 ``` {r r-value-best-aic-model}
 glance(best_aic)$adj.r.squared
-
-glance(best_aic)$p.value
 ```
 
 As calculated above, the adjusted R squared value is 0.3174919; since the p-value of this model according to the Central Limit Theorem is much less than 0.05 at $1.79 \times 10^{-43}$ (in effect, p = 0), we can safely conclude that this model shows a statistically significant positive correlation between an African country's negative change in GDP and the country's debt-to-GDP ratio and the presence of either a currency or inflation crisis. To ensure that this model is, in fact, able to be inferred upon, we will also confirm that the model fits the four criteria required for inference for regression:
@@ -500,8 +494,8 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
   geom_point() +
   geom_hline(yintercept = 0, lty = 3, color = "gray") +
   labs(y = "Residuals", x = "Predicted values, y-hat") +
-  xlim(-10000000000, 0) +
-  ylim(-5000000000, 5000000000)
+  xlim(0, 10000000000) +
+  ylim(-2500000000, 2500000000)
 ```
 
 Like before, it is now much easier to see the randomness of the residuals.

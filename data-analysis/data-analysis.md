@@ -19,7 +19,7 @@ africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
 
-tests <- 100
+tests <- 1000
 
 options(scipen = 999)
 ```
@@ -434,7 +434,7 @@ get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "two_sided")
     ## # A tibble: 1 x 1
     ##   p_value
     ##     <dbl>
-    ## 1     0.8
+    ## 1   0.678
 
 ``` r
 visualize(null_dist2) +
@@ -577,11 +577,7 @@ african_gdps <- african_gdps %>%
   group_by(country) %>%
   mutate(
     deltagdp = gdp - lag(gdp, default = gdp[1])
-  ) %>%
-  mutate(
-    neg_deltagdp = -deltagdp
-    ) %>%
-  select(-deltagdp)
+  )
 ```
 
 Notice that the gdpdelta has been negated - for our model, we want to
@@ -596,19 +592,19 @@ the distribution of GDP growth is skewed left.
 
 ``` r
 african_gdps %>%
-  filter(!is.na(neg_deltagdp)) %>%
+  filter(!is.na(deltagdp)) %>%
   group_by(systemic_crisis) %>%
   summarise(
-    median_negdeltaGDP = median(neg_deltagdp),
-    iqr_negdeltaGDP = IQR(neg_deltagdp),
+    median_deltaGDP = median(deltagdp),
+    iqr_deltaGDP = IQR(deltagdp),
   )
 ```
 
     ## # A tibble: 2 x 3
-    ##   systemic_crisis median_negdeltaGDP iqr_negdeltaGDP
-    ##   <fct>                        <dbl>           <dbl>
-    ## 1 0                       -400305237     2580219032.
-    ## 2 1                        -63907542     1206716865
+    ##   systemic_crisis median_deltaGDP iqr_deltaGDP
+    ##   <fct>                     <dbl>        <dbl>
+    ## 1 0                     400305237  2580219032.
+    ## 2 1                      63907542  1206716865
 
 While there is still evidence of positive growth, it is clear that, at
 least within our sample, the median negative GDP growth is greater
@@ -625,8 +621,8 @@ interaction between the `crisis` variables, and the interaction between
 sovereign and domestic debt in default.
 
 ``` r
-full_neg_deltaGDP_model <- lm(
-  neg_deltagdp ~ 
+full_deltaGDP_model <- lm(
+  deltagdp ~ 
     year +
     gdp +
     systemic_crisis +
@@ -641,7 +637,7 @@ full_neg_deltaGDP_model <- lm(
     banking_crisis +
     banking_crisis*inflation_crises*currency_crises*systemic_crisis +
     domestic_debt_in_default*sovereign_external_debt_default,
-  filter(african_gdps, !is.na(neg_deltagdp))
+  filter(african_gdps, !is.na(deltagdp))
     )
 ```
 
@@ -649,7 +645,7 @@ Now we can perform our backwards step function, optimizing for a lower
 value for AIC.
 
 ``` r
-best_aic <- step(full_neg_deltaGDP_model, direction = "backward")
+best_aic <- step(full_deltaGDP_model, direction = "backward")
 ```
 
 ``` r
@@ -664,18 +660,18 @@ glance(best_aic)
 
 ``` r
 tidy(best_aic) %>%
-  select(term, estimate) %>%
+  select(term, estimate, p.value) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-| term                                 |         estimate |
-| :----------------------------------- | ---------------: |
-| (Intercept)                          |  \-366494257.942 |
-| gdp                                  |          \-0.088 |
-| gdp\_weighted\_default               |  13990989692.545 |
-| currency\_crises1                    |   5105526938.416 |
-| inflation\_crises1                   |   3493307347.953 |
-| currency\_crises1:inflation\_crises1 | \-7405531522.450 |
+| term                                 |          estimate | p.value |
+| :----------------------------------- | ----------------: | ------: |
+| (Intercept)                          |     366494257.942 |   0.485 |
+| gdp                                  |             0.088 |   0.000 |
+| gdp\_weighted\_default               | \-13990989692.545 |   0.137 |
+| currency\_crises1                    |  \-5105526938.416 |   0.000 |
+| inflation\_crises1                   |  \-3493307347.953 |   0.073 |
+| currency\_crises1:inflation\_crises1 |    7405531522.450 |   0.007 |
 
 Now, we are going to calculate the r-squared value. We are going to be
 using the adjusted r-squared value because this is a multiple
@@ -686,12 +682,6 @@ glance(best_aic)$adj.r.squared
 ```
 
     ## [1] 0.3174919
-
-``` r
-glance(best_aic)$p.value
-```
-
-    ## [1] 0.0000000000000000000000000000000000000000001787544
 
 As calculated above, the adjusted R squared value is 0.3174919; since
 the p-value of this model according to the Central Limit Theorem is much
@@ -764,7 +754,7 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
   ylim(-5000000000, 5000000000)
 ```
 
-    ## Warning: Removed 191 rows containing missing values (geom_point).
+    ## Warning: Removed 457 rows containing missing values (geom_point).
 
 ![](data-analysis_files/figure-gfm/dist-and-variance-resids-zoom-1.png)<!-- -->
 
