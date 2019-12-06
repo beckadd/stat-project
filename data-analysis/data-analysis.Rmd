@@ -345,7 +345,7 @@ Since our p-value of 0 is less than the significance level of 0.05, we reject th
 
 From our results, we can conclude that historically — when accounting for all years from the 19th century to today — sub-Saharan African countries have been more prone to systemic crises than North African countries. However, the data did not provide convincing evidence that the median 2013 GDP of North African countries was greater than the median 2013 GDP of sub-Saharan countries. That's a positive sign; it demonstrates that even though there have been historical disparities between these two regions, in the 21st century, sub-Saharan Africa is catching up, if not matching up to, North African economies.
 
-## Question 3: Fitting a linear regression model
+## Question 3: What factors influence a country's GDP the most?
 
 Finally, we want to see what factors influence a country's GDP the most, as we want to by extension understand what factors most strongly predict economic crises in Africa. Since we cannot (currently) use a binary factor such as `systemic crisis` to determine whether an economy is in crisis or not, we will define "crisis" in terms of GDP growth. If year-on-year GDP growth is negative, we can say that the economy is either recessing or in crisis; for the sake of this examination, we will take both of these to indicate crisis. There is past evidence to show that negative GDP growth is indicative of a crisis, as the 2008 recession saw widespread GDP stagnation or decline. Therefore, we will optimize our model to increase "negative GDP growth". 
 

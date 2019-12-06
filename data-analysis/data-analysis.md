@@ -520,7 +520,7 @@ demonstrates that even though there have been historical disparities
 between these two regions, in the 21st century, sub-Saharan Africa is
 catching up, if not matching up to, North African economies.
 
-## Question 3: Fitting a linear regression model
+## Question 3: What factors influence a country’s GDP the most?
 
 Finally, we want to see what factors influence a country’s GDP the most,
 as we want to by extension understand what factors most strongly predict
