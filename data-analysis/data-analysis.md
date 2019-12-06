@@ -750,11 +750,11 @@ ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
   geom_point() +
   geom_hline(yintercept = 0, lty = 3, color = "gray") +
   labs(y = "Residuals", x = "Predicted values, y-hat") +
-  xlim(-10000000000, 0) +
-  ylim(-5000000000, 5000000000)
+  xlim(0, 10000000000) +
+  ylim(-2500000000, 2500000000)
 ```
 
-    ## Warning: Removed 457 rows containing missing values (geom_point).
+    ## Warning: Removed 240 rows containing missing values (geom_point).
 
 ![](data-analysis_files/figure-gfm/dist-and-variance-resids-zoom-1.png)<!-- -->
 
