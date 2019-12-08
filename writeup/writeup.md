@@ -31,18 +31,15 @@ economies.
 
 Let’s first do some exploratory data analysis. For each country, let’s
 ask: how many years after independence will a country typically
-experience its next crisis?
+experience its next
+crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-    ## # A tibble: 1 x 3
-    ##     IQR median  mean
-    ##   <dbl>  <dbl> <dbl>
-    ## 1    11     30  31.3
-
-We see that the median amount of years a country will first encounter a
-banking crisis after they achieve independence is about 30 years, with
-an interquartile range of 11 years and a mean of 31.3 years.
+|    IQR |   median |                                                                                                                                                                                        mean |
+| -----: | -------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|     11 |       30 |                                                                                                                                                                                    31.30769 |
+| We see | that the | median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years. |
 
 This is fascinating, but we’re more interested in seeing if there’s a
 difference in the economic stability of independent vs. colonized
@@ -114,12 +111,9 @@ To answer this question, we need to label North African and sub-Saharan
 countries in our Africa dataset.
 
 Let’s calculate the median GDP for North African and sub-Saharan
-countries.
-
-When calculating GDP by region, we’ll use 2013 GDP data since it’s
-recent and available for 11 of the 13 African countries in our dataset.
-We can also perform some exploratory data analysis by visualising sample
-median GDP.
+countries. When calculating GDP by region, we’ll use 2013 GDP data since
+it’s recent and available for 11 of the 13 African countries in our
+dataset.
 
 | region |     med\_gdp |
 | :----- | -----------: |
