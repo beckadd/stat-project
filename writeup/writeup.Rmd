@@ -145,6 +145,9 @@ global <- global[-1,] %>%
       inflat_crises
     ))
   )
+
+african_gdps <- african_gdps %>%
+  mutate(gdp_in_bil = gdp/1000000000)
 ```
 
 ## Question 1: How does independence impact a country's economic stability?
@@ -315,9 +318,11 @@ Let's calculate the median GDP for North African and sub-Saharan countries. When
 regional_med_gdps <- african_gdps %>%
   filter(year == 2013) %>%
   group_by(region) %>%
-  summarise(med_gdp = median(gdp))
+  summarise(med_gdp = median(gdp), med_gdp_bil = median(gdp_in_bil))
 
-regional_med_gdps %>% kable
+regional_med_gdps %>% 
+  select(region, med_gdp_bil) %>% 
+  kable(digits = 1)
 
 rmg <- regional_med_gdps %>%
   pull(med_gdp)
@@ -325,9 +330,13 @@ rmg <- regional_med_gdps %>%
 african_gdps_2013 <- african_gdps %>%
   filter(year == 2013)
 
-ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
+```
+
+Let's also visualize the median GDP by region in 2013.
+```{r visualize-median-GDP}
+ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp_in_bil)) +
   geom_boxplot(color = "black", fill = "#59CAEE") +
-  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (in billions)")
 
 ```
 

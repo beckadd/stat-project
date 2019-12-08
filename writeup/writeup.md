@@ -117,12 +117,13 @@ countries. When calculating GDP by region, we’ll use 2013 GDP data since
 it’s recent and available for 11 of the 13 African countries in our
 dataset.
 
-| region       |     med\_gdp |
-| :----------- | -----------: |
-| North Africa | 106826000000 |
-| Sub-Saharan  |  41571094245 |
+| region       | med\_gdp\_bil |
+| :----------- | ------------: |
+| North Africa |         106.8 |
+| Sub-Saharan  |          41.6 |
 
-![](writeup_files/figure-gfm/GDP-region-split-1.png)<!-- -->
+Let’s also visualize the median GDP by region in 2013.
+![](writeup_files/figure-gfm/visualize-median-GDP-1.png)<!-- -->
 
 The IQR for sub-Saharan countries is much larger than the IQR for North
 African countries, demonstrating larger variability. The country with
