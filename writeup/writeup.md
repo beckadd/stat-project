@@ -8,8 +8,10 @@ chunks are turned off with `echo = FALSE`.
 
 ## Introduction
 
-Introduction goes
-here.
+We can visualize what years data for economies in African countries is
+given.
+
+![](writeup_files/figure-gfm/countries-included-1.png)<!-- -->![](writeup_files/figure-gfm/countries-included-2.png)<!-- -->
 
 ## Data Analysis
 

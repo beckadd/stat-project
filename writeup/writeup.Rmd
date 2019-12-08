@@ -14,10 +14,8 @@ knitr::opts_chunk$set(echo = FALSE,
 Your project writeup goes here! Before you submit, make sure your chunks are turned off with `echo = FALSE`. 
 
 ## Introduction
-Introduction goes here.
+```{r load-packages, message = F}
 
-## Data Analysis
-```{r install-initialize-and-read-data, message = F, warning = F}
 #install.packages(c("infer","countrycode","pracma", "plotly"))
 library(infer)
 library(tidyverse)
@@ -26,7 +24,9 @@ library(pracma)
 library(broom)
 library(knitr)
 library(plotly)
+```
 
+```{r load-data-and-initialization, message = F, warning = F}
 africa <- read_csv("../data/african_crises.csv")
 global <- read_csv("../data/global_crisis_data.csv")
 gdps <- read_csv("../data/world_gdp_data.csv")
@@ -35,6 +35,30 @@ tests <- 1000
 
 options(scipen = 999)
 ```
+
+We can visualize what years data for economies in African countries is given.
+
+```{r countries-included, warning = F}
+ggplot(data = africa, mapping = aes(x = year)) +
+  geom_histogram(binwidth = 10, fill = "blue", col = "black") +
+  labs(
+    x = "Year",
+    y = "Number of Countries", 
+    title = "Increase in Total Number of African
+    Country Economic Observations Over Time"
+    )
+ggplot(data = africa, mapping = aes(x = country, y = year)) +
+  geom_point(size = .75, col = "orange") +
+  coord_flip() +
+  labs(
+  x = "Country",
+  y = "Year",
+  title = "African Economic Data Observed Each Year by Country"
+  )
+```
+
+
+## Data Analysis
 
 ```{r data-cleaning, warning = F}
 gdps <- gdps %>%
@@ -150,10 +174,10 @@ output$crisis_year <- africa %>%
 output <- output %>%
   mutate(difference = (crisis_year$year - independence_year$year))
 ggplot(data = output, mapping = aes(x = country, y = difference)) +
-  geom_bar(stat = "identity") + 
-  labs(title = "Years between a country 
-    achieving independence and its next financial crisis",
-    y = "Number of Years") + 
+  geom_bar(stat = "identity", fill = "blue") + 
+  labs(title = "Years Between a Country 
+    Achieving Independence and Its Next Financial Crisis",
+    y = "Number of Years", x = "Country") + 
   coord_flip()
 output %>%
   summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
@@ -291,8 +315,9 @@ african_gdps_2013 <- african_gdps %>%
   filter(year == 2013)
 
 ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
-  geom_boxplot() +
+  geom_boxplot(color = "black", fill = "#59CAEE") +
   labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
+
 ```
 
 The IQR for sub-Saharan countries is much larger than the IQR for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country, which is an outlier for its region. However, the median 2014 GDP for sub-Saharan countries is less than North African countries.
