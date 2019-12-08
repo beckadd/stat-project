@@ -262,6 +262,10 @@ fct_africa <- fct_africa %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 africa <- africa %>%
   mutate(region = case_when(
@@ -278,6 +282,10 @@ africa <- africa %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 african_gdps <- african_gdps %>%
   mutate(region = case_when(
@@ -294,6 +302,10 @@ african_gdps <- african_gdps %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 ```
 
@@ -338,7 +350,7 @@ null_dist2 <- gdp_2013 %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
-            order = c("n", "s"))
+            order = c("North Africa", "Sub-Saharan"))
 get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% kable
 visualize(null_dist2) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
@@ -371,7 +383,7 @@ null_dist3 <- fct_africa %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
-            order = c("s", "n"))
+            order = c("Sub-Saharan", "North Africa"))
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater") %>% kable
 visualize(null_dist3) +
   shade_p_value(0.0535702, "greater") +
