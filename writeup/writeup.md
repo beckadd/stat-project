@@ -33,15 +33,17 @@ economies.
 
 Let’s first do some exploratory data analysis. For each country, let’s
 ask: how many years after independence will a country typically
-experience its next
-crisis?
+experience its next crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-|    IQR |   median |                                                                                                                                                                                        mean |
-| -----: | -------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|     11 |       30 |                                                                                                                                                                                    31.30769 |
-| We see | that the | median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years. |
+| IQR | median |     mean |
+| --: | -----: | -------: |
+|  11 |     30 | 31.30769 |
+
+We see that the median amount of years a country will first encounter a
+banking crisis after they achieve independence is about 30 years, with
+an interquartile range of 11 years and a mean of 31.3 years.
 
 This is fascinating, but we’re more interested in seeing if there’s a
 difference in the economic stability of independent vs. colonized
@@ -201,8 +203,61 @@ the median 2013 GDP of North African countries was greater than the
 median 2013 GDP of sub-Saharan countries. That’s a positive sign; it
 demonstrates that even though there have been historical disparities
 between these two regions, in the 21st century, sub-Saharan Africa is
-catching up, if not matching up to, North African economies.
+catching up, if not matching up to, North African
+economies.
+
+## Question 3: Can we produce a model to predict economic crises in African economies?
+
+To determine what factors most impacted African economies, we designed
+three linear regression models with the goal of using these to predict
+economic crises in African economies. Given the limits of our own
+statistical knowledge, we were not able to give a regression model that
+directly predicted a systemic crisis, though we used the nation’s change
+in CPI (delta CPI) and change in GDP (delta GDP) as indirect and
+discrete measures of a country’s state of crisis. We claimed that, if
+the delta GDP of a nation was particularly negative, or if the delta
+Consumer Price Index (CPI) – a measure used to study a nation’s
+inflation rate – was particularly high, we could claim that these
+indicated an economic crisis.
+
+After plotting the models and performing backwards selection, optimizing
+for AIC, we found that a significant (p \< 0.001) negative correlation
+between a country in a currency crisis and whether they faced a systemic
+economic crisis overall; on average, a country undergoing a currency
+crisis was expected to have a delta GDP of about -4.74 billion USD,
+holding all else constant. Interestingly, we did not find a significant
+correlation (p = 0.073) between inflation crisis and delta GDP, nor did
+we find a significant correlation (p = 0.137) between a country’s
+debt-to-GDP ratio and delta GDP. Finally, we found that there was a
+significant positive correlation (p \< 0.001) between a country’s GDP
+and changes to their GDP, though it was relatively minor – for every
+additional $USD in the country’s GDP, their delta GDP was expected to,
+on average, be about nine cents higher.
 
 ## Conclusion
 
 Conclusion goes here.
+
+### Critiques
+
+While our models provide a fairly significant explanation for the
+variation in the dataset, with adjusted r-squared values of 0.3 or
+higher, it is difficult to confidently say whether they can predict
+economic crisis or not, given that we are not able to directly compare
+economic crisis and the explanatory factors of our models. In addition,
+our current models look at the change in GDP and CPI, which we believe
+to be a better indicator of economic stability than the GDP or CPI
+itself, we might improve our models by looking at the change in GDP as a
+proportion of the GDP overall. By doing this, we level our comparisons
+across countries such that a crisis for a small economy (where hundreds
+of millions USD might make the difference between stability and crisis)
+can be compared similarly to a crisis for a large economy (where a delta
+GDP of hundreds of billions USD might only make a small difference in
+the economic productivity of the nation).
+
+Finally, our model could certainly benefit from better generalizability.
+Given the constraints of our dataset and the scarcity of economic data
+for African countries prior to 1950, the amount of data provided for
+some African countries was so sparse that it would be difficult to
+confidently say that our model accurately explained their economic
+outcomes.

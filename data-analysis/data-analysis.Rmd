@@ -151,6 +151,8 @@ ggplot(data = output, mapping = aes(x = country, y = difference)) +
     y = "Number of Years") + 
   coord_flip()
 output %>%
+  rename(case = `independence_year`)
+output %>%
   summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
 ```
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years.
