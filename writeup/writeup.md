@@ -29,7 +29,7 @@ Thus, on a broad level, we’d like to determine how these independence
 movements ultimately affected the stability of their countries’
 economies.
 
-Let’s first do some exploratory data anlysis. For each country, let’s
+Let’s first do some exploratory data analysis. For each country, let’s
 ask: how many years after independence will a country typically
 experience its next crisis?
 
@@ -51,27 +51,10 @@ African countries see a higher proportion of systemic crises (per year)
 compared to before independence, when they were colonized. Let’s examine
 it:
 
-    ## # A tibble: 25 x 3
-    ## # Groups:   country [13]
-    ##    country                  independence crisis_prop
-    ##    <chr>                           <dbl>       <dbl>
-    ##  1 Algeria                             0      0.0263
-    ##  2 Algeria                             1      0.0638
-    ##  3 Angola                              0      0     
-    ##  4 Angola                              1      0     
-    ##  5 Central African Republic            0      0     
-    ##  6 Central African Republic            1      0.345 
-    ##  7 Egypt                               1      0.0387
-    ##  8 Ivory Coast                         0      0     
-    ##  9 Ivory Coast                         1      0.0727
-    ## 10 Kenya                               0      0     
-    ## # … with 15 more rows
-
-    ## # A tibble: 2 x 2
-    ##   independence overall_crisis_prop
-    ##          <dbl>               <dbl>
-    ## 1            0             0.00422
-    ## 2            1             0.0985
+|                           | Proportion of Years with Crises |
+| ------------------------- | ------------------------------: |
+| Independent Countries     |                       0.0042194 |
+| Non-independent Countries |                       0.0985401 |
 
 Based on our sample, we see that on average, there is a 0.42% chance of
 a systemic crisis occurring in any given year for a non-independent
@@ -89,14 +72,12 @@ proportion of years with systemic crises for African countries is higher
 post-independence than pre-independence.
 
 Since we’re testing for independence, we’ll use permutation. We’ll
-modify our dataset slightly by factoring success into a categorical
-variable so that it’ll work nicely with infer. We also need to quickly
-factor systemic\_crisis to be a categorical variable:
+modify our dataset slightly by factoring success and systemic\_crisis
+into a categorical variable so that it’ll work nicely with infer.
 
-    ## # A tibble: 1 x 1
-    ##   p_value
-    ##     <dbl>
-    ## 1       0
+| p\_value |
+| -------: |
+|        0 |
 
 ![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
 
@@ -140,11 +121,10 @@ recent and available for 11 of the 13 African countries in our dataset.
 We can also perform some exploratory data analysis by visualising sample
 median GDP.
 
-    ## # A tibble: 2 x 2
-    ##   region      med_gdp
-    ##   <chr>         <dbl>
-    ## 1 n      106826000000
-    ## 2 s       41571094245
+| region |     med\_gdp |
+| :----- | -----------: |
+| n      | 106826000000 |
+| s      |  41571094245 |
 
 ![](writeup_files/figure-gfm/GDP-region-split-1.png)<!-- -->
 
@@ -170,10 +150,9 @@ countries.
 
 Since we’re testing for independence, we’ll use permute.
 
-    ## # A tibble: 1 x 1
-    ##   p_value
-    ##     <dbl>
-    ## 1   0.339
+| p\_value |
+| -------: |
+|    0.339 |
 
 ![](writeup_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
@@ -185,11 +164,10 @@ is greater than the median GDP of sub-Saharan countries.
 Next, let’s calculate the proportion of years with systemic crises for
 North African and sub-Saharan countries.
 
-    ## # A tibble: 2 x 2
-    ##   region overall_crisis_prop
-    ##   <chr>                <dbl>
-    ## 1 n                   0.0436
-    ## 2 s                   0.0972
+| region | overall\_crisis\_prop |
+| :----- | --------------------: |
+| n      |             0.0435897 |
+| s      |             0.0971599 |
 
 The proportion of years with systemic crises for North African countries
 is 0.0436; the proportion of years with systemic crises for sub-Saharan
@@ -207,10 +185,9 @@ is greater than for North African countries.
 
 Since we’re testing for independence, we’ll use permute.
 
-    ## # A tibble: 1 x 1
-    ##   p_value
-    ##     <dbl>
-    ## 1       0
+| p\_value |
+| -------: |
+|        0 |
 
 ![](writeup_files/figure-gfm/region-prop-diff-1.png)<!-- -->
 

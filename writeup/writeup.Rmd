@@ -129,7 +129,7 @@ As African countries made a transition to becoming independent states, many were
 
 Thus, on a broad level, we'd like to determine how these independence movements ultimately affected the stability of their countries' economies.  
 
-Let's first do some exploratory data anlysis. For each country, let's ask: how many years after independence will a country typically experience its next crisis?
+Let's first do some exploratory data analysis. For each country, let's ask: how many years after independence will a country typically experience its next crisis?
 
 ```{r independence}
 output <- tibble(country = distinct(africa, country)$country)
@@ -163,19 +163,27 @@ We see that the median amount of years a country will first encounter a banking 
 This is fascinating, but we're more interested in seeing if there's a difference in the economic stability of independent vs. colonized African countries. In particular, we're wondering if post-independence African countries see a higher proportion of systemic crises (per year) compared to before independence, when they were colonized. Let's examine it: 
 
 ```{r prop-crisis}
-africa %>%
-  group_by(country, independence) %>%
-  summarise(crisis_prop = sum(systemic_crisis)/n())
+#per_country_prop <- africa %>%
+ # group_by(country, independence) %>%
+ # summarise(crisis_prop = sum(systemic_crisis)/n())
+#ggplot(data=per_country_prop, aes(x=country, y=crisis_prop,fill=factor(independence))) + 
+ # geom_bar(stat="identity", position=position_dodge()) +
+ # coord_flip()
 africa %>%
   group_by(independence) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(overall_crisis_prop = sum(systemic_crisis)/n()) %>%
+  mutate(independence = case_when(
+    independence == 0 ~ "Independent Countries",
+    independence == 1 ~ "Non-independent Countries"
+  )) %>%
+  kable(col.names = c("", "Proportion of Years with Crises"))
 ```
 
 Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent (i.e. colonized) country, while there is a 9.85% chance of a systemic crisis occurring in any given year for an independent country. The difference in these proportions is 0.094320737. 
 
 We'd like to conduct a hypothesis test to see if the proportion of years with systemic crises for African countries is higher post-independence compared to pre-independence. Our null hypothesis is that the proportion of years with systemic crises between African countries post-independence and pre-independence is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of years with systemic crises for African countries is higher post-independence than pre-independence.
 
-Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer. We also need to quickly factor systemic_crisis to be a categorical variable:
+Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success and systemic_crisis into a categorical variable so that it'll work nicely with infer. 
 
 ```{r systemic-categorical}
 fct_africa <- africa %>%
@@ -192,7 +200,7 @@ null_dist <- fct_africa %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
-get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater")
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater") %>% kable
 visualize(null_dist) +
   shade_p_value(0.094320737, "greater") +
   labs(title = "Null Distribution of Difference in Systemic Crisis Proportions", subtitle = "Between Independent and Non-Independent African Countries", x = "Difference in Proportions", 
@@ -274,7 +282,7 @@ regional_med_gdps <- african_gdps %>%
   group_by(region) %>%
   summarise(med_gdp = median(gdp))
 
-regional_med_gdps
+regional_med_gdps %>% kable
 
 rmg <- regional_med_gdps %>%
   pull(med_gdp)
@@ -307,7 +315,7 @@ null_dist2 <- gdp_2013 %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("n", "s"))
-get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater")
+get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% kable
 visualize(null_dist2) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
   labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
@@ -321,7 +329,8 @@ Next, let's calculate the proportion of years with systemic crises for North Afr
 ```{r systemic-crisis-by-region}
 africa %>%
   group_by(region) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(overall_crisis_prop = sum(systemic_crisis)/n()) %>%
+  kable
 ```
 
 The proportion of years with systemic crises for North African countries is 0.0436; the proportion of years with systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0535702.
@@ -339,7 +348,7 @@ null_dist3 <- fct_africa %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("s", "n"))
-get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater")
+get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater") %>% kable
 visualize(null_dist3) +
   shade_p_value(0.0535702, "greater") +
   labs(title = "Null Distribution of Difference in Proportion of Systemic 
