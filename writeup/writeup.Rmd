@@ -160,7 +160,7 @@ output <- tibble(country = distinct(africa, country)$country)
 output$independence_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
-  filter(row_number() ==1) %>%
+  filter(row_number() == 1) %>%
   ungroup() %>%
   select(year)
   
@@ -183,7 +183,8 @@ output %>%
   summarise(
     IQR = IQR(difference),
     median = median(difference),
-    mean = mean(difference))
+    mean = mean(difference)) %>%
+  kable
 ```
 
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years.
@@ -269,6 +270,10 @@ fct_africa <- fct_africa %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 africa <- africa %>%
   mutate(region = case_when(
@@ -285,6 +290,10 @@ africa <- africa %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 african_gdps <- african_gdps %>%
   mutate(region = case_when(
@@ -301,12 +310,14 @@ african_gdps <- african_gdps %>%
     country == "Tunisia" ~ "n",
     country == "Zambia" ~ "s",
     country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
   ))
 ```
 
-Let's calculate the median GDP for North African and sub-Saharan countries.
-
-When calculating GDP by region, we'll use 2013 GDP data since it's recent and available for 11 of the 13 African countries in our dataset. We can also perform some exploratory data analysis by visualising sample median GDP.
+Let's calculate the median GDP for North African and sub-Saharan countries. When calculating GDP by region, we'll use 2013 GDP data since it's recent and available for 11 of the 13 African countries in our dataset. 
 
 ```{r GDP-region-split, warning = F}
 regional_med_gdps <- african_gdps %>%
@@ -347,7 +358,7 @@ null_dist2 <- gdp_2013 %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
-            order = c("n", "s"))
+            order = c("North Africa", "Sub-Saharan"))
 get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% kable
 visualize(null_dist2) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
@@ -383,7 +394,7 @@ null_dist3 <- fct_africa %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
-            order = c("s", "n"))
+            order = c("Sub-Saharan", "North Africa"))
 get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater") %>% kable
 visualize(null_dist3) +
   shade_p_value(0.0535702, "greater") +

@@ -37,10 +37,9 @@ experience its next crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-    ## # A tibble: 1 x 3
-    ##     IQR median  mean
-    ##   <dbl>  <dbl> <dbl>
-    ## 1    11     30  31.3
+| IQR | median |     mean |
+| --: | -----: | -------: |
+|  11 |     30 | 31.30769 |
 
 We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
@@ -116,17 +115,14 @@ To answer this question, we need to label North African and sub-Saharan
 countries in our Africa dataset.
 
 Let’s calculate the median GDP for North African and sub-Saharan
-countries.
+countries. When calculating GDP by region, we’ll use 2013 GDP data since
+it’s recent and available for 11 of the 13 African countries in our
+dataset.
 
-When calculating GDP by region, we’ll use 2013 GDP data since it’s
-recent and available for 11 of the 13 African countries in our dataset.
-We can also perform some exploratory data analysis by visualising sample
-median GDP.
-
-| region |     med\_gdp |
-| :----- | -----------: |
-| n      | 106826000000 |
-| s      |  41571094245 |
+| region       |     med\_gdp |
+| :----------- | -----------: |
+| North Africa | 106826000000 |
+| Sub-Saharan  |  41571094245 |
 
 ![](writeup_files/figure-gfm/GDP-region-split-1.png)<!-- -->
 
@@ -166,10 +162,10 @@ is greater than the median GDP of sub-Saharan countries.
 Next, let’s calculate the proportion of years with systemic crises for
 North African and sub-Saharan countries.
 
-| region | overall\_crisis\_prop |
-| :----- | --------------------: |
-| n      |             0.0435897 |
-| s      |             0.0971599 |
+| region       | overall\_crisis\_prop |
+| :----------- | --------------------: |
+| North Africa |             0.0435897 |
+| Sub-Saharan  |             0.0971599 |
 
 The proportion of years with systemic crises for North African countries
 is 0.0436; the proportion of years with systemic crises for sub-Saharan
