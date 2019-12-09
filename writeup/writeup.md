@@ -37,9 +37,9 @@ experience its next crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-| Interquartile Range | Median |     Mean |
-| ------------------: | -----: | -------: |
-|                  11 |     30 | 31.30769 |
+| Interquartile Range | Median | Mean |
+| ------------------: | -----: | ---: |
+|                  11 |     30 | 31.3 |
 
 We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
@@ -54,27 +54,28 @@ it:
 
 |                           | Proportion of Years with Crises |
 | ------------------------- | ------------------------------: |
-| Independent Countries     |                       0.0042194 |
-| Non-independent Countries |                       0.0985401 |
+| Independent Countries     |                          0.0042 |
+| Non-independent Countries |                          0.0985 |
 
 Based on our sample, we see that on average, there is a 0.42% chance of
 a systemic crisis occurring in any given year for a non-independent
 (i.e. colonized) country, while there is a 9.85% chance of a systemic
 crisis occurring in any given year for an independent country. The
-difference in these proportions is 0.094320737.
+difference in these proportions is 0.0943; i.e. the chance of a systemic
+crises is 9.43 percentage points higher post-independence compared to
+pre-independence.
 
-We’d like to conduct a hypothesis test to see if the proportion of years
-with systemic crises for African countries is higher post-independence
-compared to pre-independence. Our null hypothesis is that the proportion
-of years with systemic crises between African countries
-post-independence and pre-independence is the same; the observed
-difference is due to chance. Our alternative hypothesis is that the
-proportion of years with systemic crises for African countries is higher
-post-independence than pre-independence.
+We’d like to see if this relationship is statistically significant and
+holds for all African countries. We can do so by conducting a hypothesis
+test to see if the proportion of years with systemic crises for African
+countries is higher post-independence compared to pre-independence. Our
+null hypothesis is that the proportion of years with systemic crises
+between African countries post-independence and pre-independence is the
+same; the observed difference is due to chance. Our alternative
+hypothesis is that the proportion of years with systemic crises for
+African countries is higher post-independence than pre-independence.
 
-Since we’re testing for independence, we’ll use permutation. We’ll
-modify our dataset slightly by factoring success and systemic\_crisis
-into a categorical variable so that it’ll work nicely with infer.
+Since we’re testing for independence, we’ll use permutation.
 
 ![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
 
@@ -82,10 +83,11 @@ into a categorical variable so that it’ll work nicely with infer.
 | ------: |
 |       0 |
 
-Since our p-value of 0 is less than our significance level of 0.05, we
-reject the null hypothesis. The data provides convincing evidence that
-the proportion of years with systemic crises for African countries is
-higher post-independence than pre-independence.
+The p-value of our hypothesis test is 0. Since our p-value of 0 is less
+than our significance level of 0.05, we reject the null hypothesis. The
+data provides convincing evidence that the proportion of years with
+systemic crises for African countries is higher post-independence than
+pre-independence.
 
 Ultimately, we can conclude that after gaining independence, African
 countries experience greater economic instability compared to when they
@@ -93,8 +95,6 @@ were under colonial
 rule.
 
 ## Question 2: Are there differences in economic development and stability between North African and sub-Saharan African Countries?
-
-#### Is there a difference in GDP and frequency of systemic crises between North African and sub-Saharan African countries?
 
 Today, many newspapers, academics, and policymakers classify Africa into
 two broad regions. There’s North Africa, consisting of nations like
@@ -109,15 +109,15 @@ We set out to see if this is claim is true; that is, if there’s a
 noticeable difference in economic stability and prosperity between North
 African and sub-Saharan African countries. We can evaluate these claims
 in two ways: by analyzing our data on each country’s GDP and the
-proportion of years with systemic crises for each country.
+proportion of years with systemic crises for each
+country.
 
-To answer this question, we need to label North African and sub-Saharan
-countries in our Africa dataset.
+#### Is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
 
-Let’s calculate the median GDP for North African and sub-Saharan
-countries. When calculating GDP by region, we’ll use 2013 GDP data since
-it’s recent and available for 11 of the 13 African countries in our
-dataset.
+To start, let’s calculate the median GDP for North African and
+sub-Saharan countries. When calculating GDP by region, we’ll use 2013
+GDP data since it’s recent and available for 11 of the 13 African
+countries in our dataset.
 
 | Region       | Median GDP (in Billions of $) |
 | :----------- | ----------------------------: |
@@ -125,21 +125,25 @@ dataset.
 | Sub-Saharan  |                          41.6 |
 
 Let’s also visualize the median GDP by region in 2013.
+
 ![](writeup_files/figure-gfm/visualize-median-GDP-1.png)<!-- -->
 
-The IQR for sub-Saharan countries is much larger than the IQR for North
-African countries, demonstrating larger variability. The country with
-the greatest GDP is a sub-Saharan country, which is an outlier for its
-region. However, the median 2014 GDP for sub-Saharan countries is less
-than North African countries.
+From our visualization, we see that the interquartile range in median
+GDP for sub-Saharan countries is much larger than the interquartile
+range for North African countries, demonstrating larger variability. The
+country with the greatest GDP is a sub-Saharan country, which is an
+outlier for its region. However, the median 2013 GDP for sub-Saharan
+countries is less than the median 2013 GDP for North African countries.
 
-The median GDP for North African countries is 106.826 billion dollars;
-the median GDP for sub-Saharan countries is 41.5710942 billion dollars.
-Therefore, the difference in median GDP between North African and
-sub-Saharan countries is 65.2549058 billion dollars.
+The median GDP for North African countries is 106.8 billion dollars; the
+median GDP for sub-Saharan countries is 41.6 billion dollars. Therefore,
+the difference in median GDP between North African and sub-Saharan
+countries is 65.3 billion dollars.
 
-The first research question we’ll ask is: is the median GDP of North
-African countries greater than the median GDP of sub-Saharan countries?
+We’d like to see if this relationship is statistically significant and
+holds all North African and sub-Saharan countries. Thus, we’ll ask the
+research question: is the median GDP of North African countries greater
+than the median GDP of sub-Saharan countries?
 
 Our null hypothesis is that the median GDP of North African and
 sub-Saharan countries is the same; the observed difference is due to
@@ -148,32 +152,41 @@ African countries is greater than the median GDP of sub-Saharan African
 countries.
 
 Since we’re testing for independence, we’ll use permute.
+
 ![](writeup_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
 | p-value |
 | ------: |
 |   0.339 |
 
-Since our p-value of 0.339 is greater than our significance level of
-0.05, we fail to reject the null hypothesis. The data does not provide
-convincing evidence that the median 2013 GDP of North African countries
-is greater than the median GDP of sub-Saharan countries.
+The p-value of our hypothesis test is 0.339. Since our p-value of 0.339
+is greater than our significance level of 0.05, we fail to reject the
+null hypothesis. The data does not provide convincing evidence that the
+median 2013 GDP of North African countries is greater than the median
+GDP of sub-Saharan
+countries.
 
-Next, let’s calculate the proportion of years with systemic crises for
-North African and sub-Saharan countries.
+#### Do sub-Saharan countries have a greater proportion of years with systemic crises than North African countries?
 
-| region       | overall\_crisis\_prop |
-| :----------- | --------------------: |
-| North Africa |             0.0435897 |
-| Sub-Saharan  |             0.0971599 |
+From our data sample, let’s calculate the proportion of years with
+systemic crises for North African and sub-Saharan countries.
+
+| Region       | Proportion of Years with Crisis |
+| :----------- | ------------------------------: |
+| North Africa |                          0.0436 |
+| Sub-Saharan  |                          0.0972 |
 
 The proportion of years with systemic crises for North African countries
 is 0.0436; the proportion of years with systemic crises for sub-Saharan
-countries is 0.0971. The difference is 0.0535702.
+countries is 0.0971. The difference is 0.0536, i.e. the proportion of
+years with systemic crises is 5.36 percentage points higher for
+sub-Saharan countries compared to North African countries.
 
-The second research question we’ll ask is: do sub-Saharan countries have
-a greater proportion of years with systemic crises than North African
-countries?
+We’d like to see if this relationship is statistically significant and
+holds for all North African and sub-Saharan countries. We can do so by
+conducting a hypothesis test to see if sub-Saharan countries have a
+greater proportion of years with systemic crises than North African
+countries.
 
 Our null hypothesis is that the proportion of years with systemic crises
 between North African and sub-Saharan countries is the same; the
@@ -182,16 +195,18 @@ the proportion of years with systemic crises for sub-Saharan countries
 is greater than for North African countries.
 
 Since we’re testing for independence, we’ll use permute.
+
 ![](writeup_files/figure-gfm/region-prop-diff-1.png)<!-- -->
 
 | p-value |
 | ------: |
 |       0 |
 
-Since our p-value of 0 is less than the significance level of 0.05, we
-reject the null hypothesis. The data provides convincing evidence that
-sub-Saharan countries have a greater proportion of years with systemic
-crises compared to North African countries.
+The p-value of our hypothesis test is 0. Since our p-value of 0 is less
+than the significance level of 0.05, we reject the null hypothesis. The
+data provides convincing evidence that sub-Saharan countries have a
+greater proportion of years with systemic crises compared to North
+African countries.
 
 From our results, we can conclude that historically — when accounting
 for all years from the 19th century to today — sub-Saharan African
