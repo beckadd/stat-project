@@ -37,9 +37,9 @@ experience its next crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-| IQR | median |     mean |
-| --: | -----: | -------: |
-|  11 |     30 | 31.30769 |
+| Interquartile Range | Median |     Mean |
+| ------------------: | -----: | -------: |
+|                  11 |     30 | 31.30769 |
 
 We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
@@ -76,11 +76,11 @@ Since we’re testing for independence, we’ll use permutation. We’ll
 modify our dataset slightly by factoring success and systemic\_crisis
 into a categorical variable so that it’ll work nicely with infer.
 
-| p\_value |
-| -------: |
-|        0 |
-
 ![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
+
+| p-value |
+| ------: |
+|       0 |
 
 Since our p-value of 0 is less than our significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
@@ -119,10 +119,10 @@ countries. When calculating GDP by region, we’ll use 2013 GDP data since
 it’s recent and available for 11 of the 13 African countries in our
 dataset.
 
-| region       | med\_gdp\_bil |
-| :----------- | ------------: |
-| North Africa |         106.8 |
-| Sub-Saharan  |          41.6 |
+| Region       | Median GDP (in Billions of $) |
+| :----------- | ----------------------------: |
+| North Africa |                         106.8 |
+| Sub-Saharan  |                          41.6 |
 
 Let’s also visualize the median GDP by region in 2013.
 ![](writeup_files/figure-gfm/visualize-median-GDP-1.png)<!-- -->
@@ -133,10 +133,10 @@ the greatest GDP is a sub-Saharan country, which is an outlier for its
 region. However, the median 2014 GDP for sub-Saharan countries is less
 than North African countries.
 
-The median GDP for North African countries is 106826000000; the median
-GDP for sub-Saharan countries is 41571094245. Therefore, the difference
-in median GDP between North African and sub-Saharan countries is
-65254905755.
+The median GDP for North African countries is 106.826 billion dollars;
+the median GDP for sub-Saharan countries is 41.5710942 billion dollars.
+Therefore, the difference in median GDP between North African and
+sub-Saharan countries is 65.2549058 billion dollars.
 
 The first research question we’ll ask is: is the median GDP of North
 African countries greater than the median GDP of sub-Saharan countries?
@@ -148,12 +148,11 @@ African countries is greater than the median GDP of sub-Saharan African
 countries.
 
 Since we’re testing for independence, we’ll use permute.
-
-| p\_value |
-| -------: |
-|    0.339 |
-
 ![](writeup_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
+
+| p-value |
+| ------: |
+|   0.339 |
 
 Since our p-value of 0.339 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
@@ -183,12 +182,11 @@ the proportion of years with systemic crises for sub-Saharan countries
 is greater than for North African countries.
 
 Since we’re testing for independence, we’ll use permute.
-
-| p\_value |
-| -------: |
-|        0 |
-
 ![](writeup_files/figure-gfm/region-prop-diff-1.png)<!-- -->
+
+| p-value |
+| ------: |
+|       0 |
 
 Since our p-value of 0 is less than the significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that

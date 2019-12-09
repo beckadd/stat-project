@@ -187,7 +187,7 @@ output %>%
     IQR = IQR(difference),
     median = median(difference),
     mean = mean(difference)) %>%
-  kable
+  kable(col.names = c("Interquartile Range", "Median", "Mean"))
 ```
 
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years.
@@ -232,7 +232,6 @@ null_dist <- fct_africa %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
-get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater") %>% kable
 visualize(null_dist) +
   shade_p_value(0.094320737, "greater") +
   labs(
@@ -241,6 +240,8 @@ visualize(null_dist) +
     x = "Difference in Proportions", 
     y = "Count"
     )
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater") %>% 
+  kable(col.names = "p-value")
 ```
 
 Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that the proportion of years with systemic crises for African countries is higher post-independence than pre-independence. 
@@ -330,10 +331,10 @@ regional_med_gdps <- african_gdps %>%
 
 regional_med_gdps %>% 
   select(region, med_gdp_bil) %>% 
-  kable(digits = 1)
+  kable(digits = 1, col.names = c("Region", "Median GDP (in Billions of $)"))
 
 rmg <- regional_med_gdps %>%
-  pull(med_gdp)
+  pull(med_gdp_bil)
 
 african_gdps_2013 <- african_gdps %>%
   filter(year == 2013)
@@ -344,13 +345,13 @@ Let's also visualize the median GDP by region in 2013.
 ```{r visualize-median-GDP}
 ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp_in_bil)) +
   geom_boxplot(color = "black", fill = "#59CAEE") +
-  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (in billions)")
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (in billions of $)")
 
 ```
 
 The IQR for sub-Saharan countries is much larger than the IQR for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country, which is an outlier for its region. However, the median 2014 GDP for sub-Saharan countries is less than North African countries.
 
-The median GDP for North African countries is `r rmg[1]`; the median GDP for sub-Saharan countries is `r rmg[2]`. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])`.
+The median GDP for North African countries is `r rmg[1]` billion dollars; the median GDP for sub-Saharan countries is `r rmg[2]` billion dollars. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])` billion dollars.
 
 The first research question we'll ask is: is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
 
@@ -363,19 +364,20 @@ gdp_2013 <- african_gdps %>%
   filter(year == 2013)
 
 null_dist2 <- gdp_2013 %>%
-  specify(response = gdp, explanatory = region) %>%
+  specify(response = gdp_in_bil, explanatory = region) %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
             order = c("North Africa", "Sub-Saharan"))
-get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% kable
 visualize(null_dist2) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
   labs(
     title = "Null Distribution of Difference in 2013 Median GDP",
     subtitle = "Between North African and Sub-Saharan Countries",
-    x = "Difference in GDP ($)", 
+    x = "Difference in GDP (in billions of $)", 
     y = "Count")
+get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% 
+  kable(col.names = c("p-value"))
 ```
 
 Since our p-value of 0.339 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that the median 2013 GDP of North African countries is greater than the median GDP of sub-Saharan countries.
@@ -404,7 +406,6 @@ null_dist3 <- fct_africa %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("Sub-Saharan", "North Africa"))
-get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater") %>% kable
 visualize(null_dist3) +
   shade_p_value(0.0535702, "greater") +
   labs(
@@ -414,6 +415,9 @@ visualize(null_dist3) +
   x = "Difference in Proportion",
   y = "Count"
   )
+get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater") %>% 
+  kable(col.names = c("p-value"))
+
 ```
 
 Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that sub-Saharan countries have a greater proportion of years with systemic crises compared to North African countries.
