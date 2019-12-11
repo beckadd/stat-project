@@ -249,10 +249,55 @@ on average, be about nine cents higher.
 
 ## Conclusion
 
-Conclusion goes here.
+On the whole, we were able to better understand what affects systemic
+crises and GDP growth through our research project. Through hypothesis
+tests, we found that whether a country is independent or not greatly
+correlates with economic stability — after gaining independence, African
+countries experienced greater economic instability compared to when they
+were under colonial rule, measured by the proportion of years with
+systemic crises. To put this into statistical terms, we found that our
+observed difference in the proportion of years with systemic crisis
+between independent and non-independent countries would occur by chance
+less than 5% of the time (using a significance level of 0.05). Since our
+p-value was less than our significance level, we rejected the null
+hypothesis (that there was no difference in the proportion of years with
+systemic crises) and concluded that the data provides convincing
+evidence to support our alternative hypothesis.
 
-### Critiques
+We also found that regional differences, such as those between North
+Africa and sub-Saharan countries, play a role too. Although our
+hypothesis tests led us to conclude that there was no significant
+difference in the median 2013 GDP of each region, we did conclude that
+sub-Saharan African countries experienced a greater proportion of years
+with systemic crises compared to North African countries. This fact
+might be the most interesting of all: it demonstrates that even though
+there have been historical disparities between these two regions, in the
+21st century, sub-Saharan Africa is catching up, if not matching up to,
+North African economies.
 
+Our statistical analysis on economic stability used the proportion of
+years with systemic crises as a proxy for economic stability. While we
+think this is an accurate metric, our predictions could’ve been improved
+by using an actual metric of economic stability that combines many
+factors of economic health, similar to a former stability index produced
+by Lehman Brothers and Eurasia Group.
+
+An assumption of hypothesis tests is that the sample data is randomly
+sampled from the population (in this case, all African nations).
+However, our dataset, created for the purposes of economics research,
+definitely did not do perfectly random sampling to select the 13 African
+countries in the dataset. Perhaps these countries had a more thorough
+history of economic indicators, or perhaps they were more interesting to
+the compilers of the dataset. In any case, we note that this dataset is
+biased towards highly populated countries, like South Africa and Egypt.
+
+Moreover, our dataset was also inconsistent in other ways. Different
+countries were tracked in the data for different periods of time; data
+from South Africa started at 1900 while the first data from Nigeria
+occurs around 1955. There were also gaps in our data for some countries
+for a couple of years.
+
+We also created a linear regression model to predict economic crises.
 While our models provide a fairly significant explanation for the
 variation in the dataset, with adjusted r-squared values of 0.3 or
 higher, it is difficult to confidently say whether they can predict
@@ -274,3 +319,20 @@ for African countries prior to 1950, the amount of data provided for
 some African countries was so sparse that it would be difficult to
 confidently say that our model accurately explained their economic
 outcomes.
+
+If we were to start over again, we would try to source a general dataset
+of economic information on all African countries, with data included for
+all the years we’re interested in. This would make our hypothesis tests
+and linear regression model much more accurate, and give more accurate
+claims into whether there’s truly differences between independence and
+non-independence. Of course, however, with the nature of historical
+economic data, that’s hard to gather. If we were to continue on this
+project, we would be extremely interested in creating a logistic
+regression model to predict whether a systemic crisis will occur in any
+given year, given a set of economic indicators like inflation rate and
+exchange rate. Moreover, we’d also be interested in seeing if we could
+create a model that, given the years prior to a systemic crisis, can
+actually predict that a crisis will happen in the future. This would be
+a very powerful model, because it could help policymakers and business
+leaders understand that a crisis is looming, allowing them to prepare,
+mitigate, or solve these crises.
