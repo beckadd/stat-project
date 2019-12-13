@@ -1,0 +1,45 @@
+---
+title: "presentation-code"
+author: "Six-Thirty-Eight"
+date: "12/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages(c("infer","countrycode","tmap", "plotly", "gridExtra"))
+library(infer)
+library(tidyverse)
+library(countrycode)
+library(gridExtra)
+library(broom)
+library(knitr)
+library(plotly)
+library(tmap)
+library(sf)
+library(gganimate)
+```
+
+## Load data
+
+```{r load-data-and-initialization, message = F, warning = F}
+load("../data/african_gdps.RData")
+```
+## EDA for Presentation
+
+```{r gganimate-gdp-over-time}
+p <- african_gdps %>%
+  mutate(
+    year = as.integer(year)
+  ) %>%
+  ggplot(aes(x = gdp)) +
+  geom_histogram(bins = 100)
+
+p <- p + 
+  transition_time(year) +
+  labs(title = "African GDP Distribution",
+       subtitle = "Year: {frame_time}") + 
+  view_follow()
+
+```

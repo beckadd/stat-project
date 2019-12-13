@@ -1,0 +1,169 @@
+---
+title: "data-cleaning"
+author: "Six-Thirty-Eight"
+date: "12/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load-packages, message = F}
+#install.packages(c("infer","countrycode","tmap", "plotly", "gridExtra"))
+library(infer)
+library(tidyverse)
+library(countrycode)
+library(gridExtra)
+library(broom)
+library(knitr)
+library(plotly)
+library(tmap)
+library(sf)
+```
+
+```{r load-data-and-initialization, message = F, warning = F}
+africa <- read_csv("../data/raw-data/african_crises.csv")
+# global <- read_csv("../data/raw-data/global_crisis_data.csv")
+gdps <- read_csv("../data/raw-data/world_gdp_data.csv")
+```
+
+## Data Cleaning, the Basic Reworking
+
+```{r data-cleaning, warning = F}
+
+gdps <- gdps %>%
+  pivot_longer(
+    cols = c(
+      -`Country Name`,
+      -`Country Code`,
+      -`Indicator Name`,
+      -`Indicator Code`),
+    names_to = "year"
+  ) %>%
+  rename(
+    cc3 = `Country Code`,
+    indicator_code = `Indicator Code`,
+    indicator_name = `Indicator Name`,
+    country = `Country Name`,
+    gdp = value
+    ) %>%
+  mutate(
+    year = as.numeric(year)
+  )
+
+african_gdps <- africa %>%
+  left_join(., gdps, by = c("country","cc3","year"))
+
+african_gdps <- african_gdps %>%
+  mutate(gdp = gdp/1000000000)
+
+
+
+african_gdps <- african_gdps %>%
+  mutate(
+    year = as.numeric(year),
+    systemic_crisis = factor(systemic_crisis),
+    domestic_debt_in_default = factor(domestic_debt_in_default),
+    sovereign_external_debt_default = factor(sovereign_external_debt_default),
+    independence = factor(independence),
+    currency_crises = factor(case_when(
+      currency_crises < 1 ~ 0,
+      TRUE ~ 1
+    )),
+    inflation_crises = factor(inflation_crises),
+    banking_crisis = factor(banking_crisis)
+  )
+
+
+# Didn't end up using global
+
+# global <- global[-1,] %>%
+#   select(-`<`) %>%
+#   rename(
+#     case = Case,
+#     cc3 = CC3,
+#     country = Country,
+#     year = Year,
+#     banking_crisis = `Banking Crisis`,
+#     systemic_crisis = `Systemic Crisis`,
+#     gold_standard = `Gold Standard`,
+#     nat_currency = `national currency`,
+#     sov_ext_debt = 
+#     `SOVEREIGN EXTERNAL DEBT 1: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom and post-1975 defaults on Official External Creditors`,
+#     sov_ext_debt_post1975 = `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors`,
+#     exc_primary = `exch_primary source code`,
+#     domest_debt_default = `Domestic_Debt_In_Default`,
+#     domest_debt_notes = `Domestic_Debt_ Notes/Sources`,
+#     default_ext_notes = `Defaults_External_Notes`,
+#     gdp_weighted_default = `GDP_Weighted_default`,
+#     inflat_aver_consumer_prices = `Inflation, Annual percentages of average consumer prices`,
+#     curr_crises = `Currency Crises`,
+#     independence = `Independence`,
+#     inflat_crises = `Inflation Crises`
+# ) %>%
+#   mutate(
+#     banking_crisis = as.logical(as.numeric(
+#       banking_crisis
+#       )),
+#     systemic_crisis = as.logical(as.numeric(
+#       systemic_crisis
+#     )),
+#     gold_standard = as.logical(as.numeric(
+#       gold_standard
+#     )),
+#     domest_debt_default = as.logical(as.numeric(
+#       domest_debt_default
+#     )),
+#     independence = as.logical(as.numeric(
+#       independence
+#     )),
+#     curr_crises = as.logical(as.numeric(
+#       curr_crises
+#     )),
+#     inflat_crises = as.logical(as.numeric(
+#       inflat_crises
+#     ))
+#   )
+```
+
+## Data Cleaning, Adding the Regions
+
+```{r systemic-categorical}
+
+african_gdps <- african_gdps %>%
+  mutate(systemic_crisis = factor(systemic_crisis)) %>%
+  mutate(independence = factor(independence))
+
+```
+
+``` {r label-region}
+
+african_gdps <- african_gdps %>%
+  mutate(region = case_when(
+    country == "Algeria" ~ "n",
+    country == "Angola" ~ "s",
+    country == "Central African Republic" ~ "s",
+    country == "Egypt" ~ "n",
+    country == "Ivory Coast" ~ "s",
+    country == "Kenya" ~ "s",
+    country == "Mauritius" ~ "s",
+    country == "Morocco" ~ "n",
+    country == "Nigeria" ~ "s",
+    country == "South Africa" ~ "s",
+    country == "Tunisia" ~ "n",
+    country == "Zambia" ~ "s",
+    country == "Zimbabwe" ~ "s"
+  )) %>%
+  mutate(region = case_when(
+    region == "n" ~ "North Africa",
+    region == "s" ~ "Sub-Saharan"
+  )) %>%
+  mutate(region = as.factor(region))
+```
+
+## Saving the data
+
+```{r save-data}
+save(african_gdps, file = "../data/african_gdps.RData")
+```

@@ -22,103 +22,16 @@ library(sf)
 ```
 
 ```{r load-data-and-initialization, message = F, warning = F}
-africa <- read_csv("../data/african_crises.csv")
-global <- read_csv("../data/global_crisis_data.csv")
-gdps <- read_csv("../data/world_gdp_data.csv")
+
+load("../data/african_gdps.RData")
 
 tests <- 1000
-
 options(scipen = 999)
+
 ```
 
 Our analysis begins with two datasets: our original African economic crises dataset, which contains numerical variables like inflation rate, exchange rate against the US dollar, and debt vs. GDP ratio. Another helpful variable to analyze would be each country's GDP, so we downloaded world GDP data from the World Bank, and joined this data with our Africa dataset. We then cleaned up the dataset by renaming some variables and changing their types from integers to booleans.
 
-```{r data-cleaning, warning = F}
-gdps <- gdps %>%
-  pivot_longer(
-    cols = c(
-      -`Country Name`,
-      -`Country Code`,
-      -`Indicator Name`,
-      -`Indicator Code`),
-    names_to = "year"
-  ) %>%
-  rename(
-    cc3 = `Country Code`,
-    indicator_code = `Indicator Code`,
-    indicator_name = `Indicator Name`,
-    country = `Country Name`,
-    gdp = value
-    )
-
-african_gdps <- gdps %>%
-  merge(., africa, by = c("country","cc3","year"))
-
-
-
-african_gdps <- african_gdps %>%
-  mutate(
-    year = as.numeric(year),
-    systemic_crisis = factor(systemic_crisis),
-    domestic_debt_in_default = factor(domestic_debt_in_default),
-    sovereign_external_debt_default = factor(sovereign_external_debt_default),
-    independence = factor(independence),
-    currency_crises = factor(case_when(
-      currency_crises < 1 ~ 0,
-      TRUE ~ 1
-    )),
-    inflation_crises = factor(inflation_crises),
-    banking_crisis = factor(banking_crisis)
-  )
-
-global <- global[-1,] %>%
-  select(-`<`) %>%
-  rename(
-    case = Case,
-    cc3 = CC3,
-    country = Country,
-    year = Year,
-    banking_crisis = `Banking Crisis`,
-    systemic_crisis = `Systemic Crisis`,
-    gold_standard = `Gold Standard`,
-    nat_currency = `national currency`,
-    sov_ext_debt = 
-    `SOVEREIGN EXTERNAL DEBT 1: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom and post-1975 defaults on Official External Creditors`,
-    sov_ext_debt_post1975 = `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors`,
-    exc_primary = `exch_primary source code`,
-    domest_debt_default = `Domestic_Debt_In_Default`,
-    domest_debt_notes = `Domestic_Debt_ Notes/Sources`,
-    default_ext_notes = `Defaults_External_Notes`,
-    gdp_weighted_default = `GDP_Weighted_default`,
-    inflat_aver_consumer_prices = `Inflation, Annual percentages of average consumer prices`,
-    curr_crises = `Currency Crises`,
-    independence = `Independence`,
-    inflat_crises = `Inflation Crises`
-) %>%
-  mutate(
-    banking_crisis = as.logical(as.numeric(
-      banking_crisis
-      )),
-    systemic_crisis = as.logical(as.numeric(
-      systemic_crisis
-    )),
-    gold_standard = as.logical(as.numeric(
-      gold_standard
-    )),
-    domest_debt_default = as.logical(as.numeric(
-      domest_debt_default
-    )),
-    independence = as.logical(as.numeric(
-      independence
-    )),
-    curr_crises = as.logical(as.numeric(
-      curr_crises
-    )),
-    inflat_crises = as.logical(as.numeric(
-      inflat_crises
-    ))
-  )
-```
 
 ## Question 1: How does independence impact a country's economic stability?
 
@@ -129,8 +42,8 @@ Thus, on a broad level, we'd like to determine how these independence movements 
 Let's first do some exploratory data anlysis. For each country, let's ask: how many years after independence will a country typically experience its next crisis?
 
 ```{r independence}
-output <- tibble(country = distinct(africa, country)$country)
-output$independence_year <- africa %>%
+countries <- tibble(country = distinct(african_gdps, country)$country)
+countries$independence_year <- african_gdps %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   arrange(year) %>%
@@ -138,7 +51,7 @@ output$independence_year <- africa %>%
   ungroup() %>%
   select(year)
   
-output$crisis_year <- africa %>%
+countries$crisis_year <- african_gdps %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   arrange(year) %>%
@@ -146,46 +59,52 @@ output$crisis_year <- africa %>%
   filter(row_number() == 1) %>%
   ungroup() %>%
   select(year)
-output <- output %>%
+
+countries <- countries %>%
   mutate(difference = (crisis_year$year - independence_year$year))
-ggplot(data = output, mapping = aes(x = country, y = difference)) +
+
+countries %>%
+  ggplot(mapping = aes(x = reorder(country, difference), y =
+                         difference)) +
   geom_bar(stat = "identity") + 
   labs(title = "Years between a country 
-    achieving independence and its next financial crisis",
+       achieving independence and its next financial crisis",
+    x = "Country",
     y = "Number of Years") + 
   coord_flip()
 
-output %>%
+countries %>%
   summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
+
+rm(countries)
 ```
 We see that the median amount of years a country will first encounter a banking crisis after they achieve independence is about 30 years, with an interquartile range of 11 years and a mean of 31.3 years.
 
 This is fascinating, but we're more interested in seeing if there's a difference in the economic stability of independent vs. colonized African countries. In particular, we're wondering if post-independence African countries see a higher proportion of systemic crises (per year) compared to before independence, when they were colonized. Let's examine it: 
 
 ```{r prop-crisis}
-africa %>%
+african_gdps %>%
   group_by(country, independence) %>%
-  summarise(crisis_prop = sum(systemic_crisis)/n())
-africa %>%
+  summarise(
+    crisis_prop = mean(systemic_crisis == 1)
+  )
+
+african_gdps %>%
   group_by(independence) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(
+    overall_crisis_prop = mean(systemic_crisis == 1)
+  )
 ```
 
 Based on our sample, we see that on average, there is a 0.42% chance of a systemic crisis occurring in any given year for a non-independent (i.e. colonized) country, while there is a 9.85% chance of a systemic crisis occurring in any given year for an independent country. The difference in these proportions is 0.094320737. 
 
 We'd like to conduct a hypothesis test to see if the proportion of years with systemic crises for African countries is higher post-independence compared to pre-independence. Our null hypothesis is that the proportion of years with systemic crises between African countries post-independence and pre-independence is the same; the observed difference is due to chance. Our alternative hypothesis is that the proportion of years with systemic crises for African countries is higher post-independence than pre-independence.
 
-Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer. We also need to quickly factor systemic_crisis to be a categorical variable:
-
-```{r systemic-categorical}
-fct_africa <- africa %>%
-  mutate(systemic_crisis = factor(systemic_crisis)) %>%
-  mutate(independence = factor(independence))
-```
+Since we're testing for independence, we'll use permutation. We'll modify our dataset slightly by factoring success into a categorical variable so that it'll work nicely with infer. We also need to quickly factor systemic_crisis to be a categorical variable. We've done this in our `data-cleaning` file.
 
 ```{r crisis-prop-diff}
 set.seed(1)
-null_dist <- fct_africa %>%
+null_dist<- african_gdps %>%
   specify(response = systemic_crisis, explanatory = independence, 
           success = "1") %>%
   hypothesize(null = "independence") %>%
@@ -193,10 +112,16 @@ null_dist <- fct_africa %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
 get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater")
+
 visualize(null_dist) +
   shade_p_value(0.094320737, "greater") +
-  labs(title = "Null Distribution of Difference in Systemic Crisis Proportions", subtitle = "Between Independent and Non-Independent African Countries", x = "Difference in Proportions", 
-       y = "Count")
+  labs(
+    title = "Null Distribution of Difference in Systemic Crisis Proportions",
+    subtitle = "Between Independent and Non-Independent African Countries",
+    x = "Difference in Proportions", 
+    y = "Count")
+
+rm(null_dist)
 ```
 
 Since our p-value of 0 is less than our significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that the proportion of years with systemic crises for African countries is higher post-independence than pre-independence. 
@@ -211,58 +136,7 @@ Today, many newspapers, academics, and policymakers classify Africa into two bro
 
 We set out to see if this is claim is true; that is, if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate these claims in two ways: by analyzing our data on each country's GDP and the proportion of years with systemic crises for each country.
 
-To answer this question, we need to label North African and sub-Saharan countries in our Africa dataset. 
-
-``` {r label-region}
-fct_africa <- fct_africa %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-africa <- africa %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-african_gdps <- african_gdps %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-```
+To answer this question, we need to label North African and sub-Saharan countries in our Africa dataset. We've done this in our `data-cleaning` file.
 
 Let's calculate the median GDP for North African and sub-Saharan countries.
 
@@ -270,26 +144,29 @@ When calculating GDP by region, we'll use 2013 GDP data since it's recent and av
 
 ```{r GDP-region-split, warning = F}
 regional_med_gdps <- african_gdps %>%
+  filter(!is.na(gdp)) %>%
   filter(year == 2013) %>%
   group_by(region) %>%
-  summarise(med_gdp = median(gdp))
+  summarise(med_gdp_billions = median(gdp))
+
+rmg <- regional_med_gdps %>%
+  pull(med_gdp_billions)
+
 
 regional_med_gdps
 
-rmg <- regional_med_gdps %>%
-  pull(med_gdp)
-
-african_gdps_2013 <- african_gdps %>%
-  filter(year == 2013)
-
-ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
+african_gdps %>%
+  filter(year == 2013) %>%
+  ggplot( mapping = aes(x = region, y = gdp)) +
   geom_boxplot() +
-  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (Billion $ USD)")
+
+rm(regional_med_gdps)
 ```
 
 The IQR for sub-Saharan countries is much larger than the IQR for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country, which is an outlier for its region. However, the median 2014 GDP for sub-Saharan countries is less than North African countries.
 
-The median GDP for North African countries is `r rmg[1]`; the median GDP for sub-Saharan countries is `r rmg[2]`. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])`.
+The median GDP for North African countries is `r rmg[1]` billion; the median GDP for sub-Saharan countries is `r rmg[2]` billion. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r abs(rmg[1] - rmg[2])` billion.
 
 The first research question we'll ask is: is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
 
@@ -298,20 +175,23 @@ Our null hypothesis is that the median GDP of North African and sub-Saharan coun
 Since we're testing for independence, we'll use permute.
 ```{r gdp-prop-diff}
 set.seed(1)
-gdp_2013 <- african_gdps %>%
-  filter(year == 2013)
 
-null_dist2 <- gdp_2013 %>%
+null_dist <- african_gdps %>%
+  filter(!is.na(gdp)) %>%
+  filter(year == 2013) %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
-            order = c("n", "s"))
-get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater")
-visualize(null_dist2) +
+            order = c("North Africa", "Sub-Saharan"))
+get_p_value(null_dist, obs_stat = rmg[1] - rmg[2], direction = "greater")
+visualize(null_dist) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
   labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
+
+rm(null_dist)
+rm(rmg)
 ```
 
 Since our p-value of 0.339 is greater than our significance level of 0.05, we fail to reject the null hypothesis. The data does not provide convincing evidence that the median 2013 GDP of North African countries is greater than the median GDP of sub-Saharan countries.
@@ -319,9 +199,9 @@ Since our p-value of 0.339 is greater than our significance level of 0.05, we fa
 Next, let's calculate the proportion of years with systemic crises for North African and sub-Saharan countries. 
 
 ```{r systemic-crisis-by-region}
-africa %>%
+african_gdps %>%
   group_by(region) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(overall_crisis_prop = mean(systemic_crisis == 1))
 ```
 
 The proportion of years with systemic crises for North African countries is 0.0436; the proportion of years with systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0535702.
@@ -333,17 +213,20 @@ Our null hypothesis is that the proportion of years with systemic crises between
 Since we're testing for independence, we'll use permute.
 ```{r region-prop-diff}
 set.seed(1)
-null_dist3 <- fct_africa %>%
+null_dist <- african_gdps %>%
   specify(response = systemic_crisis, explanatory = region, success = "1") %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
-            order = c("s", "n"))
-get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater")
-visualize(null_dist3) +
+            order = c("Sub-Saharan", "North Africa"))
+
+get_p_value(null_dist, obs_stat = 0.0535702, direction = "greater")
+visualize(null_dist) +
   shade_p_value(0.0535702, "greater") +
   labs(title = "Null Distribution of Difference in Proportion of Systemic 
   Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
+
+rm(null_dist)
 ```
 
 Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that sub-Saharan countries have a greater proportion of years with systemic crises compared to North African countries.
@@ -358,29 +241,28 @@ Finally, we want to see what factors influence a country's GDP the most, as we w
 
 First and foremost, we will perform some exploratory data analysis on the change in GDP of African countries in the decade between 2003 and 2013.
 
-```{r gpd-change}
-african_gdps_03131 <- african_gdps %>%
-  filter(year >= 2003 & year <= 2013) %>%
-  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya"))
+```{r gdp-change}
 
-african_gdps_03132 <- african_gdps %>%
+african_gdps %>%
   filter(year >= 2003 & year <= 2013) %>%
-  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe"))
-
-ggplot(data = african_gdps_03131, mapping = aes(x = year, y = gdp)) +
+  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya")) %>%
+  ggplot(mapping = aes(x = year, y = gdp)) +
   facet_grid(. ~ country) +
   geom_line() +
-  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($ USD)") +
   theme(axis.text.x = element_blank())
 
-ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
+african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe")) %>%
+  ggplot(mapping = aes(x = year, y = gdp)) +
   facet_grid(. ~ country) +
   geom_line() +
-  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
-  theme(axis.text.x = element_blank()) 
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP (Billions $ USD)") +
+  theme(axis.text.x = element_blank())
 ```
 
-Next, we must find the difference in GDP growth between every year in the dataset, for each country.
+Next, we must find the difference in GDP growth between every year in the dataset, for each country. We've done this below:
 
 ```{r derivative-country-percentchange}
 
@@ -397,19 +279,6 @@ african_gdps <- african_gdps %>%
   ) %>%
   filter(is.finite(percentchange_cpi))
 
-```
-
-Let's look at what the percent change of GDP and CPI looks like for African countries in our dataset.
-
-```{r exploratory-change}
-africa_cont <- read_sf("/cloud/project/data/Africa.shp")
-
-qtm(africa_cont, fill = african_gdps
-african_gdps %>%
-  ggplot(aes(color = country)) +
-  geom_line(aes(x = year, y = percentchange_gdp)) +
-  geom_line(aes(x = year, y = percentchange_cpi, linetype = "twodash")) +
-  scale_y_continuous(limits = c(-1,1))
 ```
 
 Now, while we can't show with our current stats knowledge whether the occurrence of a systemic crisis and GDP growth are related through direct means (this would require a binary hypothesis test), we can at least show anecdotally that, during times of crisis, there is a lower
@@ -445,14 +314,11 @@ full_pcGDP_model <- lm(
     inflation_annual_cpi +
     percentchange_cpi +
     independence +
+    region +
     currency_crises +
     inflation_crises +
     banking_crisis)^2,
-  filter(african_gdps,
-         (
-             is.finite(percentchange_gdp) &&
-             is.finite(percentchange_cpi))
-    ))
+  african_gdps)
 
 full_pcCPI_model <- lm(
     percentchange_cpi ~ 
@@ -465,15 +331,11 @@ full_pcCPI_model <- lm(
     inflation_annual_cpi +
     percentchange_gdp +
     independence +
+    region +
     currency_crises +
     inflation_crises +
     banking_crisis)^2,
-  filter(african_gdps, 
-         (
-             is.finite(percentchange_cpi) &&
-             is.finite(percentchange_gdp)
-           ))
-)
+    african_gdps)
 ```
 
 Now we can perform our backwards step function, optimizing for a lower value for AIC.
@@ -483,6 +345,7 @@ Now we can perform our backwards step function, optimizing for a lower value for
 best_aic_pcGDP <- step(full_pcGDP_model, direction = "backward")
 best_aic_pcCPI <- step(full_pcCPI_model, direction = "backward")
 
+rm(full_pcCPI_model, full_pcGDP_model)
 ```
 
 ```{r final-model}
@@ -499,6 +362,7 @@ tidy(best_aic_pcCPI) %>%
   select(term, estimate, p.value) %>%
   arrange(p.value) %>%
   kable(format = "markdown", digits = 3)
+
 ```
 
 Now, we are going to calculate the r-squared value. We are going to be using the adjusted r-squared value because these are multiple regressions.
@@ -571,3 +435,7 @@ eval_assumptions(best_aic_pcCPI, 0.05, 0.95)
 ```
 
 In contrast, while our annual percentage change in CPI regression model explains the variance in the dataset much better than our GDP model when comparing adjusted R-squared values, it may not be as suited to general inference. While the observations are independent and approximately normally distributed, there seems to be a clear trend in the distribution of observations. This indicates that while the model is quite precise in repeatedly predicting a similar value for any given factors, it is increasingly inaccurate in predicting larger changes, resulting in more residuals. Therefore, while this model is incredibly effective in predicting changes in CPI when CPI changes are small, it is not as accurate when CPI changes are large. For the purposes of our dataset, this is mostly fine - changes in CPI are generally incremental. In fact, the lack of data for larger changes in CPI can probably explain the inaccuracy of the model at these extremes.
+
+
+
+###### Footnotes

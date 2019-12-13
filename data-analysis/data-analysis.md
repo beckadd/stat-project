@@ -4,24 +4,22 @@ Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 12/3/2019
 
 ``` r
-#install.packages(c("infer","countrycode","pracma", "plotly", "gridExtra"))
+#install.packages(c("infer","countrycode","tmap", "plotly", "gridExtra"))
 library(infer)
 library(tidyverse)
 library(countrycode)
 library(gridExtra)
-library(pracma)
 library(broom)
 library(knitr)
 library(plotly)
+library(tmap)
+library(sf)
 ```
 
 ``` r
-africa <- read_csv("../data/african_crises.csv")
-global <- read_csv("../data/global_crisis_data.csv")
-gdps <- read_csv("../data/world_gdp_data.csv")
+load("../data/african_gdps.RData")
 
 tests <- 1000
-
 options(scipen = 999)
 ```
 
@@ -31,94 +29,8 @@ exchange rate against the US dollar, and debt vs. GDP ratio. Another
 helpful variable to analyze would be each country’s GDP, so we
 downloaded world GDP data from the World Bank, and joined this data with
 our Africa dataset. We then cleaned up the dataset by renaming some
-variables and changing their types from integers to booleans.
-
-``` r
-gdps <- gdps %>%
-  pivot_longer(
-    cols = c(
-      -`Country Name`,
-      -`Country Code`,
-      -`Indicator Name`,
-      -`Indicator Code`),
-    names_to = "year"
-  ) %>%
-  rename(
-    cc3 = `Country Code`,
-    indicator_code = `Indicator Code`,
-    indicator_name = `Indicator Name`,
-    country = `Country Name`,
-    gdp = value
-    )
-
-african_gdps <- gdps %>%
-  merge(., africa, by = c("country","cc3","year"))
-
-
-
-african_gdps <- african_gdps %>%
-  mutate(
-    year = as.numeric(year),
-    systemic_crisis = factor(systemic_crisis),
-    domestic_debt_in_default = factor(domestic_debt_in_default),
-    sovereign_external_debt_default = factor(sovereign_external_debt_default),
-    independence = factor(independence),
-    currency_crises = factor(case_when(
-      currency_crises < 1 ~ 0,
-      TRUE ~ 1
-    )),
-    inflation_crises = factor(inflation_crises),
-    banking_crisis = factor(banking_crisis)
-  )
-
-global <- global[-1,] %>%
-  select(-`<`) %>%
-  rename(
-    case = Case,
-    cc3 = CC3,
-    country = Country,
-    year = Year,
-    banking_crisis = `Banking Crisis`,
-    systemic_crisis = `Systemic Crisis`,
-    gold_standard = `Gold Standard`,
-    nat_currency = `national currency`,
-    sov_ext_debt = 
-    `SOVEREIGN EXTERNAL DEBT 1: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom and post-1975 defaults on Official External Creditors`,
-    sov_ext_debt_post1975 = `SOVEREIGN EXTERNAL DEBT 2: DEFAULT and RESTRUCTURINGS, 1800-2012--Does not include defaults on WWI debt to United States and United Kingdom but includes post-1975 defaults on Official External Creditors`,
-    exc_primary = `exch_primary source code`,
-    domest_debt_default = `Domestic_Debt_In_Default`,
-    domest_debt_notes = `Domestic_Debt_ Notes/Sources`,
-    default_ext_notes = `Defaults_External_Notes`,
-    gdp_weighted_default = `GDP_Weighted_default`,
-    inflat_aver_consumer_prices = `Inflation, Annual percentages of average consumer prices`,
-    curr_crises = `Currency Crises`,
-    independence = `Independence`,
-    inflat_crises = `Inflation Crises`
-) %>%
-  mutate(
-    banking_crisis = as.logical(as.numeric(
-      banking_crisis
-      )),
-    systemic_crisis = as.logical(as.numeric(
-      systemic_crisis
-    )),
-    gold_standard = as.logical(as.numeric(
-      gold_standard
-    )),
-    domest_debt_default = as.logical(as.numeric(
-      domest_debt_default
-    )),
-    independence = as.logical(as.numeric(
-      independence
-    )),
-    curr_crises = as.logical(as.numeric(
-      curr_crises
-    )),
-    inflat_crises = as.logical(as.numeric(
-      inflat_crises
-    ))
-  )
-```
+variables and changing their types from integers to
+booleans.
 
 ## Question 1: How does independence impact a country’s economic stability?
 
@@ -141,8 +53,8 @@ ask: how many years after independence will a country typically
 experience its next crisis?
 
 ``` r
-output <- tibble(country = distinct(africa, country)$country)
-output$independence_year <- africa %>%
+countries <- tibble(country = distinct(african_gdps, country)$country)
+countries$independence_year <- african_gdps %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   arrange(year) %>%
@@ -150,7 +62,7 @@ output$independence_year <- africa %>%
   ungroup() %>%
   select(year)
   
-output$crisis_year <- africa %>%
+countries$crisis_year <- african_gdps %>%
   filter(independence == 1) %>%
   group_by(country) %>%
   arrange(year) %>%
@@ -158,12 +70,17 @@ output$crisis_year <- africa %>%
   filter(row_number() == 1) %>%
   ungroup() %>%
   select(year)
-output <- output %>%
+
+countries <- countries %>%
   mutate(difference = (crisis_year$year - independence_year$year))
-ggplot(data = output, mapping = aes(x = country, y = difference)) +
+
+countries %>%
+  ggplot(mapping = aes(x = reorder(country, difference), y =
+                         difference)) +
   geom_bar(stat = "identity") + 
   labs(title = "Years between a country 
-    achieving independence and its next financial crisis",
+       achieving independence and its next financial crisis",
+    x = "Country",
     y = "Number of Years") + 
   coord_flip()
 ```
@@ -171,7 +88,7 @@ ggplot(data = output, mapping = aes(x = country, y = difference)) +
 ![](data-analysis_files/figure-gfm/independence-1.png)<!-- -->
 
 ``` r
-output %>%
+countries %>%
   summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
 ```
 
@@ -179,6 +96,10 @@ output %>%
     ##     IQR median  mean
     ##   <dbl>  <dbl> <dbl>
     ## 1     3     28  31.3
+
+``` r
+rm(countries)
+```
 
 We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
@@ -192,38 +113,42 @@ compared to before independence, when they were colonized. Let’s examine
 it:
 
 ``` r
-africa %>%
+african_gdps %>%
   group_by(country, independence) %>%
-  summarise(crisis_prop = sum(systemic_crisis)/n())
+  summarise(
+    crisis_prop = mean(systemic_crisis == 1)
+  )
 ```
 
     ## # A tibble: 25 x 3
     ## # Groups:   country [13]
     ##    country                  independence crisis_prop
-    ##    <chr>                           <dbl>       <dbl>
-    ##  1 Algeria                             0      0.0263
-    ##  2 Algeria                             1      0.0638
-    ##  3 Angola                              0      0     
-    ##  4 Angola                              1      0     
-    ##  5 Central African Republic            0      0     
-    ##  6 Central African Republic            1      0.345 
-    ##  7 Egypt                               1      0.0387
-    ##  8 Ivory Coast                         0      0     
-    ##  9 Ivory Coast                         1      0.0727
-    ## 10 Kenya                               0      0     
+    ##    <chr>                    <fct>              <dbl>
+    ##  1 Algeria                  0                 0.0263
+    ##  2 Algeria                  1                 0.0638
+    ##  3 Angola                   0                 0     
+    ##  4 Angola                   1                 0     
+    ##  5 Central African Republic 0                 0     
+    ##  6 Central African Republic 1                 0.345 
+    ##  7 Egypt                    1                 0.0387
+    ##  8 Ivory Coast              0                 0     
+    ##  9 Ivory Coast              1                 0.0727
+    ## 10 Kenya                    0                 0     
     ## # … with 15 more rows
 
 ``` r
-africa %>%
+african_gdps %>%
   group_by(independence) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(
+    overall_crisis_prop = mean(systemic_crisis == 1)
+  )
 ```
 
     ## # A tibble: 2 x 2
     ##   independence overall_crisis_prop
-    ##          <dbl>               <dbl>
-    ## 1            0             0.00422
-    ## 2            1             0.0985
+    ##   <fct>                      <dbl>
+    ## 1 0                        0.00422
+    ## 2 1                        0.0985
 
 Based on our sample, we see that on average, there is a 0.42% chance of
 a systemic crisis occurring in any given year for a non-independent
@@ -243,17 +168,12 @@ post-independence than pre-independence.
 Since we’re testing for independence, we’ll use permutation. We’ll
 modify our dataset slightly by factoring success into a categorical
 variable so that it’ll work nicely with infer. We also need to quickly
-factor systemic\_crisis to be a categorical variable:
-
-``` r
-fct_africa <- africa %>%
-  mutate(systemic_crisis = factor(systemic_crisis)) %>%
-  mutate(independence = factor(independence))
-```
+factor systemic\_crisis to be a categorical variable. We’ve done this in
+our `data-cleaning` file.
 
 ``` r
 set.seed(1)
-null_dist <- fct_africa %>%
+null_dist<- african_gdps %>%
   specify(response = systemic_crisis, explanatory = independence, 
           success = "1") %>%
   hypothesize(null = "independence") %>%
@@ -271,11 +191,18 @@ get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater")
 ``` r
 visualize(null_dist) +
   shade_p_value(0.094320737, "greater") +
-  labs(title = "Null Distribution of Difference in Systemic Crisis Proportions", subtitle = "Between Independent and Non-Independent African Countries", x = "Difference in Proportions", 
-       y = "Count")
+  labs(
+    title = "Null Distribution of Difference in Systemic Crisis Proportions",
+    subtitle = "Between Independent and Non-Independent African Countries",
+    x = "Difference in Proportions", 
+    y = "Count")
 ```
 
 ![](data-analysis_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
+
+``` r
+rm(null_dist)
+```
 
 Since our p-value of 0 is less than our significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
@@ -307,58 +234,8 @@ in two ways: by analyzing our data on each country’s GDP and the
 proportion of years with systemic crises for each country.
 
 To answer this question, we need to label North African and sub-Saharan
-countries in our Africa dataset.
-
-``` r
-fct_africa <- fct_africa %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-africa <- africa %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-african_gdps <- african_gdps %>%
-  mutate(region = case_when(
-    country == "Algeria" ~ "n",
-    country == "Angola" ~ "s",
-    country == "Central African Republic" ~ "s",
-    country == "Egypt" ~ "n",
-    country == "Ivory Coast" ~ "s",
-    country == "Kenya" ~ "s",
-    country == "Mauritius" ~ "s",
-    country == "Morocco" ~ "n",
-    country == "Nigeria" ~ "s",
-    country == "South Africa" ~ "s",
-    country == "Tunisia" ~ "n",
-    country == "Zambia" ~ "s",
-    country == "Zimbabwe" ~ "s"
-  ))
-```
+countries in our Africa dataset. We’ve done this in our `data-cleaning`
+file.
 
 Let’s calculate the median GDP for North African and sub-Saharan
 countries.
@@ -370,32 +247,37 @@ median GDP.
 
 ``` r
 regional_med_gdps <- african_gdps %>%
+  filter(!is.na(gdp)) %>%
   filter(year == 2013) %>%
   group_by(region) %>%
-  summarise(med_gdp = median(gdp))
+  summarise(med_gdp_billions = median(gdp))
+
+rmg <- regional_med_gdps %>%
+  pull(med_gdp_billions)
+
 
 regional_med_gdps
 ```
 
     ## # A tibble: 2 x 2
-    ##   region      med_gdp
-    ##   <chr>         <dbl>
-    ## 1 n      106826000000
-    ## 2 s       41571094245
+    ##   region       med_gdp_billions
+    ##   <fct>                   <dbl>
+    ## 1 North Africa            107. 
+    ## 2 Sub-Saharan              41.6
 
 ``` r
-rmg <- regional_med_gdps %>%
-  pull(med_gdp)
-
-african_gdps_2013 <- african_gdps %>%
-  filter(year == 2013)
-
-ggplot(data = african_gdps_2013, mapping = aes(x = region, y = gdp)) +
+african_gdps %>%
+  filter(year == 2013) %>%
+  ggplot( mapping = aes(x = region, y = gdp)) +
   geom_boxplot() +
-  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP ($)")
+  labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (Billion $ USD)")
 ```
 
 ![](data-analysis_files/figure-gfm/GDP-region-split-1.png)<!-- -->
+
+``` r
+rm(regional_med_gdps)
+```
 
 The IQR for sub-Saharan countries is much larger than the IQR for North
 African countries, demonstrating larger variability. The country with
@@ -403,10 +285,10 @@ the greatest GDP is a sub-Saharan country, which is an outlier for its
 region. However, the median 2014 GDP for sub-Saharan countries is less
 than North African countries.
 
-The median GDP for North African countries is 106826000000; the median
-GDP for sub-Saharan countries is 41571094245. Therefore, the difference
-in median GDP between North African and sub-Saharan countries is
-65254905755.
+The median GDP for North African countries is 106.826 billion; the
+median GDP for sub-Saharan countries is 41.5710942 billion. Therefore,
+the difference in median GDP between North African and sub-Saharan
+countries is 65.2549058 billion.
 
 The first research question we’ll ask is: is the median GDP of North
 African countries greater than the median GDP of sub-Saharan countries?
@@ -421,16 +303,16 @@ Since we’re testing for independence, we’ll use permute.
 
 ``` r
 set.seed(1)
-gdp_2013 <- african_gdps %>%
-  filter(year == 2013)
 
-null_dist2 <- gdp_2013 %>%
+null_dist <- african_gdps %>%
+  filter(!is.na(gdp)) %>%
+  filter(year == 2013) %>%
   specify(response = gdp, explanatory = region) %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in medians", 
-            order = c("n", "s"))
-get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater")
+            order = c("North Africa", "Sub-Saharan"))
+get_p_value(null_dist, obs_stat = rmg[1] - rmg[2], direction = "greater")
 ```
 
     ## # A tibble: 1 x 1
@@ -439,13 +321,18 @@ get_p_value(null_dist2, obs_stat = rmg[1] - rmg[2], direction = "greater")
     ## 1   0.339
 
 ``` r
-visualize(null_dist2) +
+visualize(null_dist) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
   labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
 ```
 
 ![](data-analysis_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
+
+``` r
+rm(null_dist)
+rm(rmg)
+```
 
 Since our p-value of 0.339 is greater than our significance level of
 0.05, we fail to reject the null hypothesis. The data does not provide
@@ -456,16 +343,16 @@ Next, let’s calculate the proportion of years with systemic crises for
 North African and sub-Saharan countries.
 
 ``` r
-africa %>%
+african_gdps %>%
   group_by(region) %>%
-  summarise(overall_crisis_prop = sum(systemic_crisis)/n())
+  summarise(overall_crisis_prop = mean(systemic_crisis == 1))
 ```
 
     ## # A tibble: 2 x 2
-    ##   region overall_crisis_prop
-    ##   <chr>                <dbl>
-    ## 1 n                   0.0436
-    ## 2 s                   0.0972
+    ##   region       overall_crisis_prop
+    ##   <fct>                      <dbl>
+    ## 1 North Africa              0.0436
+    ## 2 Sub-Saharan               0.0972
 
 The proportion of years with systemic crises for North African countries
 is 0.0436; the proportion of years with systemic crises for sub-Saharan
@@ -485,13 +372,14 @@ Since we’re testing for independence, we’ll use permute.
 
 ``` r
 set.seed(1)
-null_dist3 <- fct_africa %>%
+null_dist <- african_gdps %>%
   specify(response = systemic_crisis, explanatory = region, success = "1") %>%
   hypothesize(null = "independence") %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
-            order = c("s", "n"))
-get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater")
+            order = c("Sub-Saharan", "North Africa"))
+
+get_p_value(null_dist, obs_stat = 0.0535702, direction = "greater")
 ```
 
     ## # A tibble: 1 x 1
@@ -500,13 +388,17 @@ get_p_value(null_dist3, obs_stat = 0.0535702, direction = "greater")
     ## 1       0
 
 ``` r
-visualize(null_dist3) +
+visualize(null_dist) +
   shade_p_value(0.0535702, "greater") +
   labs(title = "Null Distribution of Difference in Proportion of Systemic 
   Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
 ```
 
 ![](data-analysis_files/figure-gfm/region-prop-diff-1.png)<!-- -->
+
+``` r
+rm(null_dist)
+```
 
 Since our p-value of 0 is less than the significance level of 0.05, we
 reject the null hypothesis. The data provides convincing evidence that
@@ -544,35 +436,33 @@ the change in GDP of African countries in the decade between 2003 and
 2013.
 
 ``` r
-african_gdps_03131 <- african_gdps %>%
+african_gdps %>%
   filter(year >= 2003 & year <= 2013) %>%
-  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya"))
-
-african_gdps_03132 <- african_gdps %>%
-  filter(year >= 2003 & year <= 2013) %>%
-  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe"))
-
-ggplot(data = african_gdps_03131, mapping = aes(x = year, y = gdp)) +
+  filter(country %in% c("Algeria", "Angola", "Central African Republic", "Kenya")) %>%
+  ggplot(mapping = aes(x = year, y = gdp)) +
   facet_grid(. ~ country) +
   geom_line() +
-  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($ USD)") +
   theme(axis.text.x = element_blank())
 ```
 
-![](data-analysis_files/figure-gfm/gpd-change-1.png)<!-- -->
+![](data-analysis_files/figure-gfm/gdp-change-1.png)<!-- -->
 
 ``` r
-ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
+african_gdps %>%
+  filter(year >= 2003 & year <= 2013) %>%
+  filter(country %in% c("Mauritius", "Morrocco", "South Africa", "Tunisia", "Zambia", "Zimbabwe")) %>%
+  ggplot(mapping = aes(x = year, y = gdp)) +
   facet_grid(. ~ country) +
   geom_line() +
-  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP ($US)") +
-  theme(axis.text.x = element_blank()) 
+  labs(title = "Change in GDP from 2003-2013", x = "Year", y = "Change in GDP (Billions $ USD)") +
+  theme(axis.text.x = element_blank())
 ```
 
-![](data-analysis_files/figure-gfm/gpd-change-2.png)<!-- -->
+![](data-analysis_files/figure-gfm/gdp-change-2.png)<!-- -->
 
 Next, we must find the difference in GDP growth between every year in
-the dataset, for each country.
+the dataset, for each country. We’ve done this below:
 
 ``` r
 african_gdps <- african_gdps %>%
@@ -588,24 +478,6 @@ african_gdps <- african_gdps %>%
   ) %>%
   filter(is.finite(percentchange_cpi))
 ```
-
-Let’s look at what the percent change of GDP and CPI looks like for
-African countries in our dataset.
-
-``` r
-african_gdps %>%
-  ggplot(aes(color = country)) +
-  geom_line(aes(x = year, y = percentchange_gdp)) +
-  geom_line(aes(x = year, y = percentchange_cpi, linetype = "twodash")) +
-  facet_grid(rows = vars(region), cols = vars(country)) +
-  scale_y_continuous(limits = c(-1,1))
-```
-
-    ## Warning: Removed 37 rows containing missing values (geom_path).
-
-    ## Warning: Removed 2 rows containing missing values (geom_path).
-
-![](data-analysis_files/figure-gfm/exploratory-change-1.png)<!-- -->
 
 Now, while we can’t show with our current stats knowledge whether the
 occurrence of a systemic crisis and GDP growth are related through
@@ -627,7 +499,7 @@ african_gdps %>%
     ## # A tibble: 2 x 5
     ##   systemic_crisis median_pcGDP iqr_pcGDP median_pcCPI iqr_pcCPI
     ##   <fct>                  <dbl>     <dbl>        <dbl>     <dbl>
-    ## 1 0                     0.0722     0.133       0.0350     0.706
+    ## 1 0                     0.0738     0.132       0.0437     0.726
     ## 2 1                     0.0322     0.182       0.113      0.813
 
 While there is still evidence of positive growth during times of
@@ -658,14 +530,11 @@ full_pcGDP_model <- lm(
     inflation_annual_cpi +
     percentchange_cpi +
     independence +
+    region +
     currency_crises +
     inflation_crises +
     banking_crisis)^2,
-  filter(african_gdps,
-         (
-             is.finite(percentchange_gdp) &&
-             is.finite(percentchange_cpi))
-    ))
+  african_gdps)
 
 full_pcCPI_model <- lm(
     percentchange_cpi ~ 
@@ -678,15 +547,11 @@ full_pcCPI_model <- lm(
     inflation_annual_cpi +
     percentchange_gdp +
     independence +
+    region +
     currency_crises +
     inflation_crises +
     banking_crisis)^2,
-  filter(african_gdps, 
-         (
-             is.finite(percentchange_cpi) &&
-             is.finite(percentchange_gdp)
-           ))
-)
+    african_gdps)
 ```
 
 Now we can perform our backwards step function, optimizing for a lower
@@ -695,6 +560,8 @@ value for AIC.
 ``` r
 best_aic_pcGDP <- step(full_pcGDP_model, direction = "backward")
 best_aic_pcCPI <- step(full_pcCPI_model, direction = "backward")
+
+rm(full_pcCPI_model, full_pcGDP_model)
 ```
 
 ``` r
@@ -704,7 +571,7 @@ glance(best_aic_pcGDP)
     ## # A tibble: 1 x 11
     ##   r.squared adj.r.squared sigma statistic  p.value    df logLik   AIC   BIC
     ##       <dbl>         <dbl> <dbl>     <dbl>    <dbl> <int>  <dbl> <dbl> <dbl>
-    ## 1     0.280         0.234 0.125      6.03 6.64e-17    27   299. -541. -427.
+    ## 1     0.292         0.229 0.124      4.68 6.54e-18    44   379. -669. -476.
     ## # … with 2 more variables: deviance <dbl>, df.residual <int>
 
 ``` r
@@ -712,10 +579,10 @@ glance(best_aic_pcCPI)
 ```
 
     ## # A tibble: 1 x 11
-    ##   r.squared adj.r.squared sigma statistic p.value    df logLik   AIC   BIC
-    ##       <dbl>         <dbl> <dbl>     <dbl>   <dbl> <int>  <dbl> <dbl> <dbl>
-    ## 1     1.000         1.000  90.8 99467257.       0    11 -2543. 5111. 5159.
-    ## # … with 2 more variables: deviance <dbl>, df.residual <int>
+    ##   r.squared adj.r.squared  sigma statistic   p.value    df logLik    AIC
+    ##       <dbl>         <dbl>  <dbl>     <dbl>     <dbl> <int>  <dbl>  <dbl>
+    ## 1     0.890         0.879 43180.      85.1 1.78e-202    47 -6420. 12937.
+    ## # … with 3 more variables: BIC <dbl>, deviance <dbl>, df.residual <int>
 
 ``` r
 tidy(best_aic_pcGDP) %>%
@@ -724,35 +591,52 @@ tidy(best_aic_pcGDP) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-| term                                                          |     estimate | p.value |
-| :------------------------------------------------------------ | -----------: | ------: |
-| currency\_crises1                                             |      \-0.083 |   0.000 |
-| sovereign\_external\_debt\_default1:inflation\_crises1        |        0.208 |   0.001 |
-| gdp:inflation\_crises1                                        |        0.000 |   0.002 |
-| exch\_usd:currency\_crises1                                   |      \-0.001 |   0.006 |
-| percentchange\_cpi:inflation\_crises1                         |      \-0.083 |   0.009 |
-| sovereign\_external\_debt\_default1:banking\_crisisno\_crisis |        0.125 |   0.010 |
-| sovereign\_external\_debt\_default1                           |      \-0.125 |   0.012 |
-| sovereign\_external\_debt\_default1:inflation\_annual\_cpi    |      \-0.003 |   0.017 |
-| sovereign\_external\_debt\_default1:percentchange\_cpi        |      \-0.016 |   0.022 |
-| sovereign\_external\_debt\_default1:currency\_crises1         |      \-0.108 |   0.026 |
-| independence1                                                 |        0.068 |   0.054 |
-| exch\_usd:percentchange\_cpi                                  |        0.000 |   0.067 |
-| gdp:sovereign\_external\_debt\_default1                       |        0.000 |   0.079 |
-| inflation\_annual\_cpi:currency\_crises1                      |        0.001 |   0.092 |
-| percentchange\_cpi:currency\_crises1                          |        0.050 |   0.099 |
-| exch\_usd:banking\_crisisno\_crisis                           |        0.000 |   0.103 |
-| domestic\_debt\_in\_default1:inflation\_crises1               |   144218.293 |   0.105 |
-| domestic\_debt\_in\_default1:banking\_crisisno\_crisis        |   144218.177 |   0.105 |
-| domestic\_debt\_in\_default1                                  | \-144218.133 |   0.105 |
-| inflation\_annual\_cpi                                        |        0.002 |   0.120 |
-| currency\_crises1:inflation\_crises1                          |      \-0.077 |   0.146 |
-| percentchange\_cpi                                            |        0.000 |   0.171 |
-| exch\_usd                                                     |        0.000 |   0.175 |
-| inflation\_crises1                                            |      \-0.061 |   0.183 |
-| banking\_crisisno\_crisis                                     |        0.023 |   0.417 |
-| (Intercept)                                                   |      \-0.012 |   0.780 |
-| gdp                                                           |        0.000 |   0.968 |
+| term                                                          | estimate | p.value |
+| :------------------------------------------------------------ | -------: | ------: |
+| inflation\_crises1                                            | \-21.490 |   0.000 |
+| year:inflation\_crises1                                       |    0.011 |   0.000 |
+| inflation\_crises1:banking\_crisisno\_crisis                  |    0.216 |   0.000 |
+| sovereign\_external\_debt\_default1:banking\_crisisno\_crisis |    0.153 |   0.000 |
+| inflation\_annual\_cpi                                        |    0.020 |   0.001 |
+| sovereign\_external\_debt\_default1:currency\_crises1         |  \-0.161 |   0.001 |
+| year:inflation\_annual\_cpi                                   |    0.000 |   0.001 |
+| currency\_crises1                                             |  \-0.066 |   0.003 |
+| gdp:domestic\_debt\_in\_default1                              |    0.024 |   0.011 |
+| gdp:banking\_crisisno\_crisis                                 |    0.001 |   0.012 |
+| exch\_usd:currency\_crises1                                   |  \-0.001 |   0.014 |
+| gdp\_weighted\_default:regionSub-Saharan                      |  \-5.542 |   0.014 |
+| gdp\_weighted\_default:inflation\_annual\_cpi                 |    0.101 |   0.018 |
+| gdp:gdp\_weighted\_default                                    |    0.042 |   0.019 |
+| exch\_usd:inflation\_crises1                                  |    0.001 |   0.023 |
+| sovereign\_external\_debt\_default1:inflation\_crises1        |    0.136 |   0.024 |
+| gdp:inflation\_annual\_cpi                                    |    0.000 |   0.025 |
+| year:gdp\_weighted\_default                                   |  \-0.302 |   0.025 |
+| gdp\_weighted\_default                                        |  600.837 |   0.025 |
+| gdp\_weighted\_default:inflation\_crises1                     |  \-1.977 |   0.026 |
+| domestic\_debt\_in\_default1                                  |  \-0.138 |   0.026 |
+| sovereign\_external\_debt\_default1                           |  \-0.359 |   0.030 |
+| gdp                                                           |  \-0.001 |   0.040 |
+| independence1                                                 |    0.247 |   0.051 |
+| exch\_usd:percentchange\_cpi                                  |    0.000 |   0.051 |
+| sovereign\_external\_debt\_default1:regionSub-Saharan         |    0.299 |   0.052 |
+| year:regionSub-Saharan                                        |    0.002 |   0.052 |
+| sovereign\_external\_debt\_default1:inflation\_annual\_cpi    |  \-0.002 |   0.060 |
+| regionSub-Saharan                                             |  \-3.110 |   0.072 |
+| percentchange\_cpi:currency\_crises1                          |  \-0.016 |   0.076 |
+| banking\_crisisno\_crisis                                     |   10.893 |   0.081 |
+| year:banking\_crisisno\_crisis                                |  \-0.005 |   0.082 |
+| sovereign\_external\_debt\_default1:percentchange\_cpi        |  \-0.010 |   0.098 |
+| exch\_usd:sovereign\_external\_debt\_default1                 |    0.000 |   0.118 |
+| gdp:exch\_usd                                                 |    0.000 |   0.139 |
+| domestic\_debt\_in\_default1:percentchange\_cpi               |    0.016 |   0.143 |
+| inflation\_annual\_cpi:currency\_crises1                      |    0.001 |   0.149 |
+| independence1:regionSub-Saharan                               |  \-0.192 |   0.152 |
+| regionSub-Saharan:banking\_crisisno\_crisis                   |  \-0.079 |   0.154 |
+| exch\_usd:domestic\_debt\_in\_default1                        |    0.000 |   0.165 |
+| percentchange\_cpi                                            |    0.000 |   0.168 |
+| (Intercept)                                                   |  \-7.345 |   0.248 |
+| year                                                          |    0.004 |   0.261 |
+| exch\_usd                                                     |    0.000 |   0.908 |
 
 ``` r
 tidy(best_aic_pcCPI) %>%
@@ -761,19 +645,55 @@ tidy(best_aic_pcCPI) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-| term                                                   |      estimate | p.value |
-| :----------------------------------------------------- | ------------: | ------: |
-| domestic\_debt\_in\_default1                           |   2866983.439 |   0.000 |
-| domestic\_debt\_in\_default1:inflation\_crises1        | \-2866985.493 |   0.000 |
-| domestic\_debt\_in\_default1:banking\_crisisno\_crisis | \-2866994.277 |   0.000 |
-| percentchange\_gdp                                     |      9071.869 |   0.076 |
-| year:percentchange\_gdp                                |       \-4.540 |   0.078 |
-| inflation\_annual\_cpi                                 |       \-1.165 |   0.154 |
-| inflation\_annual\_cpi:inflation\_crises1              |         1.165 |   0.154 |
-| inflation\_crises1                                     |       \-8.516 |   0.584 |
-| year                                                   |         0.074 |   0.831 |
-| (Intercept)                                            |     \-137.655 |   0.841 |
-| banking\_crisisno\_crisis                              |         1.667 |   0.903 |
+| term                                                          |      estimate | p.value |
+| :------------------------------------------------------------ | ------------: | ------: |
+| exch\_usd:currency\_crises1                                   |      2246.617 |   0.000 |
+| domestic\_debt\_in\_default1:banking\_crisisno\_crisis        |  \-735485.207 |   0.000 |
+| domestic\_debt\_in\_default1:currency\_crises1                |    394592.308 |   0.000 |
+| inflation\_annual\_cpi:banking\_crisisno\_crisis              |      2247.004 |   0.000 |
+| exch\_usd:inflation\_crises1                                  |    \-1336.807 |   0.000 |
+| domestic\_debt\_in\_default1:inflation\_crises1               |  \-608869.999 |   0.000 |
+| domestic\_debt\_in\_default1:percentchange\_gdp               |    531416.895 |   0.000 |
+| exch\_usd:percentchange\_gdp                                  |      1044.307 |   0.000 |
+| domestic\_debt\_in\_default1:inflation\_annual\_cpi           |      2164.987 |   0.000 |
+| exch\_usd:domestic\_debt\_in\_default1                        |      1619.425 |   0.000 |
+| inflation\_annual\_cpi:currency\_crises1                      |    \-2043.113 |   0.000 |
+| domestic\_debt\_in\_default1                                  |  28863048.018 |   0.000 |
+| year:domestic\_debt\_in\_default1                             |   \-14291.910 |   0.000 |
+| inflation\_annual\_cpi                                        |   \-15355.542 |   0.000 |
+| year:inflation\_annual\_cpi                                   |         6.703 |   0.000 |
+| sovereign\_external\_debt\_default1:percentchange\_gdp        |  \-176047.049 |   0.000 |
+| banking\_crisisno\_crisis                                     |   9743420.161 |   0.000 |
+| year:banking\_crisisno\_crisis                                |    \-4897.771 |   0.000 |
+| gdp:inflation\_annual\_cpi                                    |         6.761 |   0.000 |
+| year                                                          |      4784.186 |   0.000 |
+| (Intercept)                                                   | \-9514416.857 |   0.000 |
+| percentchange\_gdp:currency\_crises1                          |    122641.601 |   0.000 |
+| inflation\_annual\_cpi:inflation\_crises1                     |      1744.019 |   0.001 |
+| year:inflation\_crises1                                       |    \-2934.811 |   0.001 |
+| inflation\_crises1                                            |   5799030.783 |   0.001 |
+| regionSub-Saharan:banking\_crisisno\_crisis                   |   \-53330.772 |   0.005 |
+| sovereign\_external\_debt\_default1:banking\_crisisno\_crisis |     50705.299 |   0.006 |
+| currency\_crises1:banking\_crisisno\_crisis                   |   \-53029.752 |   0.010 |
+| regionSub-Saharan                                             |     48549.867 |   0.010 |
+| percentchange\_gdp:banking\_crisisno\_crisis                  |   \-95264.013 |   0.021 |
+| gdp:inflation\_crises1                                        |     \-519.162 |   0.039 |
+| gdp\_weighted\_default                                        | 170020966.107 |   0.042 |
+| year:gdp\_weighted\_default                                   |   \-85193.772 |   0.042 |
+| inflation\_crises1:banking\_crisisno\_crisis                  |     41785.838 |   0.051 |
+| gdp:banking\_crisisno\_crisis                                 |       217.889 |   0.057 |
+| gdp\_weighted\_default:regionSub-Saharan                      | \-1205468.685 |   0.060 |
+| year:exch\_usd                                                |       \-3.046 |   0.084 |
+| exch\_usd                                                     |      5982.225 |   0.088 |
+| currency\_crises1                                             |     37178.901 |   0.092 |
+| gdp                                                           |     \-206.157 |   0.099 |
+| sovereign\_external\_debt\_default1                           | \-3303654.804 |   0.114 |
+| gdp:exch\_usd                                                 |       \-1.005 |   0.118 |
+| gdp:gdp\_weighted\_default                                    |      7762.042 |   0.125 |
+| year:sovereign\_external\_debt\_default1                      |      1608.202 |   0.128 |
+| sovereign\_external\_debt\_default1:regionSub-Saharan         |     76907.402 |   0.128 |
+| gdp\_weighted\_default:banking\_crisisno\_crisis              |  \-189736.345 |   0.153 |
+| percentchange\_gdp                                            |     50856.185 |   0.230 |
 
 Now, we are going to calculate the r-squared value. We are going to be
 using the adjusted r-squared value because these are multiple
@@ -783,16 +703,16 @@ regressions.
 glance(best_aic_pcGDP)$adj.r.squared
 ```
 
-    ## [1] 0.2335743
+    ## [1] 0.2292906
 
 ``` r
 glance(best_aic_pcCPI)$adj.r.squared
 ```
 
-    ## [1] 0.9999996
+    ## [1] 0.8790931
 
-As calculated above, the adjusted R squared values are 0.2335743 for our
-model predicting percent change in GDP, and 0.9999996 for our model
+As calculated above, the adjusted R squared values are 0.2292906 for our
+model predicting percent change in GDP, and 0.8790931 for our model
 predicting percent change in CPI. This latter value attests to the
 precision of the model in explaining CPI changes in African economies,
 which by extension
@@ -882,6 +802,8 @@ not as accurate when CPI changes are large. For the purposes of our
 dataset, this is mostly fine - changes in CPI are generally incremental.
 In fact, the lack of data for larger changes in CPI can probably explain
 the inaccuracy of the model at these extremes.
+
+###### Footnotes
 
 1.  Note - this code has been borrowed from the following slide and
     modified for the purposes of this assignment:

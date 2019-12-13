@@ -37,9 +37,10 @@ experience its next crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
-| Interquartile Range | Median | Mean |
-| ------------------: | -----: | ---: |
-|                  11 |     30 | 31.3 |
+    ## # A tibble: 1 x 3
+    ##     IQR median  mean
+    ##   <dbl>  <dbl> <dbl>
+    ## 1     3     28  31.3
 
 We see that the median amount of years a country will first encounter a
 banking crisis after they achieve independence is about 30 years, with
@@ -77,11 +78,12 @@ African countries is higher post-independence than pre-independence.
 
 Since we’re testing for independence, we’ll use permutation.
 
-![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
+    ## # A tibble: 1 x 1
+    ##   p_value
+    ##     <dbl>
+    ## 1       0
 
-| p-value |
-| ------: |
-|       0 |
+![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
 
 The p-value of our hypothesis test is 0. Since our p-value of 0 is less
 than our significance level of 0.05, we reject the null hypothesis. The
@@ -119,10 +121,11 @@ sub-Saharan countries. When calculating GDP by region, we’ll use 2013
 GDP data since it’s recent and available for 11 of the 13 African
 countries in our dataset.
 
-| Region       | Median GDP (in Billions of $) |
-| :----------- | ----------------------------: |
-| North Africa |                         106.8 |
-| Sub-Saharan  |                          41.6 |
+    ## # A tibble: 2 x 2
+    ##   region       med_gdp_billions
+    ##   <fct>                   <dbl>
+    ## 1 North Africa            107. 
+    ## 2 Sub-Saharan              41.6
 
 Let’s also visualize the median GDP by region in 2013.
 
