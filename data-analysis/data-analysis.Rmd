@@ -9,10 +9,11 @@ output:
 
 ```{r load-packages, message = F}
 
-#install.packages(c("infer","countrycode","pracma", "plotly"))
+#install.packages(c("infer","countrycode","pracma", "plotly", "gridExtra"))
 library(infer)
 library(tidyverse)
 library(countrycode)
+library(gridExtra)
 library(pracma)
 library(broom)
 library(knitr)
@@ -131,6 +132,7 @@ output <- tibble(country = distinct(africa, country)$country)
 output$independence_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
+  arrange(year) %>%
   filter(row_number()==1) %>%
   ungroup() %>%
   select(year)
@@ -138,6 +140,7 @@ output$independence_year <- africa %>%
 output$crisis_year <- africa %>%
   filter(independence == 1) %>%
   group_by(country) %>%
+  arrange(year) %>%
   filter(banking_crisis == "crisis") %>%
   filter(row_number() == 1) %>%
   ungroup() %>%
@@ -150,8 +153,7 @@ ggplot(data = output, mapping = aes(x = country, y = difference)) +
     achieving independence and its next financial crisis",
     y = "Number of Years") + 
   coord_flip()
-output %>%
-  rename(case = `independence_year`)
+
 output %>%
   summarise(IQR = IQR(difference), median = median(difference), mean = mean(difference))
 ```
@@ -379,138 +381,191 @@ ggplot(data = african_gdps_03132, mapping = aes(x = year, y = gdp)) +
 
 Next, we must find the difference in GDP growth between every year in the dataset, for each country.
 
-```{r derivative-country-GDPs}
+```{r derivative-country-percentchange}
 
 african_gdps <- african_gdps %>%
   group_by(country) %>%
   mutate(
-    deltagdp = gdp - lag(gdp, default = gdp[1])
-  )
+    percentchange_gdp = (gdp - lag(gdp, default = gdp[1]))/gdp,
+    percentchange_cpi = 
+      (
+        inflation_annual_cpi -
+          lag(inflation_annual_cpi,default = inflation_annual_cpi[1])
+      )
+    /inflation_annual_cpi
+  ) %>%
+  filter(is.finite(percentchange_cpi))
 
 ```
 
-Notice that the gdpdelta has been negated - for our model, we want to optimize for an increasingly negative delta GDP, which indicates decline.
+Let's look at what the percent change of GDP and CPI looks like for African countries in our dataset.
 
-Now, while we can't show with our current stats knowledge whether the occurrence of a systemic crisis and negative GDP growth are related, we can at least show anecdotally that median negative GDP growth in and out of economic crisis. We use median to examine the center of GDP growth as the distribution of GDP growth is skewed left. 
-
-```{r crisis-and-negdeltaGDP}
+```{r exploratory-change}
 african_gdps %>%
-  filter(!is.na(deltagdp)) %>%
+  ggplot(aes(color = country)) +
+  geom_line(aes(x = year, y = percentchange_gdp)) +
+  geom_line(aes(x = year, y = percentchange_cpi, linetype = "twodash")) +
+  facet_grid(rows = vars(region), cols = vars(country)) +
+  scale_y_continuous(limits = c(-1,1))
+```
+
+Now, while we can't show with our current stats knowledge whether the occurrence of a systemic crisis and GDP growth are related through direct means (this would require a binary hypothesis test), we can at least show anecdotally that, during times of crisis, there is a lower
+
+```{r crisis-and-percentchange}
+african_gdps %>%
+  filter(!is.na(percentchange_gdp)) %>%
   group_by(systemic_crisis) %>%
   summarise(
-    median_deltaGDP = median(deltagdp),
-    iqr_deltaGDP = IQR(deltagdp),
+    median_pcGDP = median(percentchange_gdp),
+    iqr_pcGDP = IQR(percentchange_gdp),
+    median_pcCPI = median(percentchange_cpi),
+    iqr_pcCPI = IQR(percentchange_cpi)
   )
 ```
 
-While there is still evidence of positive growth, it is clear that, at least within our sample, the median negative GDP growth is greater during crisis than out of crisis, and within our sample the interquartile range for crisis negative GDP growth is much less, indicating less variability than no crisis GDP growth.  
+While there is still evidence of positive growth during times of systemic crisis, it is clear that at least within our sample, the median percent change in GDP growth is less positive during crisis than out of crisis; similarly, the median percent change in CPI is substantially higher for crisis, indicating that African economic crises are marked by increased rate of currency inflation.
 
 #### Creation, refinement, and analysis of a regression model
 
-Before we perform a backwards step to see which factors are most influential in an increasingly negative delta GDP, we have our "full" model, with all of the variables. Additionally, we have examined the interaction between the `crisis` variables, and the interaction between sovereign and domestic debt in default.
+Before we perform a backwards step to see which factors are most influential in the percent change in GDP and CPI, we build our "full" models, with all of the variables apart from the response variables themselves. Additionally, we have examined the interaction between the `crisis` variables, and the interaction between sovereign and domestic debt in default.
 
 ```{r full-model}
 
-full_deltaGDP_model <- lm(
-  deltagdp ~ 
-    year +
+full_pcGDP_model <- lm(
+  percentchange_gdp ~ 
+    (year +
     gdp +
-    systemic_crisis +
     exch_usd +
     domestic_debt_in_default +
     sovereign_external_debt_default +
     gdp_weighted_default +
     inflation_annual_cpi +
+    percentchange_cpi +
     independence +
     currency_crises +
     inflation_crises +
-    banking_crisis +
-    banking_crisis*inflation_crises*currency_crises*systemic_crisis +
-    domestic_debt_in_default*sovereign_external_debt_default,
-  filter(african_gdps, !is.na(deltagdp))
-    )
+    banking_crisis)^2,
+  filter(african_gdps,
+         (
+             is.finite(percentchange_gdp) &&
+             is.finite(percentchange_cpi))
+    ))
+
+full_pcCPI_model <- lm(
+    percentchange_cpi ~ 
+    (year +
+    gdp +
+    exch_usd +
+    domestic_debt_in_default +
+    sovereign_external_debt_default +
+    gdp_weighted_default +
+    inflation_annual_cpi +
+    percentchange_gdp +
+    independence +
+    currency_crises +
+    inflation_crises +
+    banking_crisis)^2,
+  filter(african_gdps, 
+         (
+             is.finite(percentchange_cpi) &&
+             is.finite(percentchange_gdp)
+           ))
+)
 ```
 
 Now we can perform our backwards step function, optimizing for a lower value for AIC.
 
 ```{r step-func-AIC, results = "hide"}
 
-best_aic <- step(full_deltaGDP_model, direction = "backward")
+best_aic_pcGDP <- step(full_pcGDP_model, direction = "backward")
+best_aic_pcCPI <- step(full_pcCPI_model, direction = "backward")
+
 ```
 
 ```{r final-model}
-glance(best_aic)
+glance(best_aic_pcGDP)
+glance(best_aic_pcCPI)
 
-tidy(best_aic) %>%
+
+tidy(best_aic_pcGDP) %>%
   select(term, estimate, p.value) %>%
+  arrange(p.value) %>%
+  kable(format = "markdown", digits = 3)
+
+tidy(best_aic_pcCPI) %>%
+  select(term, estimate, p.value) %>%
+  arrange(p.value) %>%
   kable(format = "markdown", digits = 3)
 ```
 
-Now, we are going to calculate the r-squared value. We are going to be using the adjusted r-squared value because this is a multiple regression.
+Now, we are going to calculate the r-squared value. We are going to be using the adjusted r-squared value because these are multiple regressions.
 
 ``` {r r-value-best-aic-model}
-glance(best_aic)$adj.r.squared
+glance(best_aic_pcGDP)$adj.r.squared
+glance(best_aic_pcCPI)$adj.r.squared
 ```
 
-As calculated above, the adjusted R squared value is 0.3174919; since the p-value of this model according to the Central Limit Theorem is much less than 0.05 at $1.79 \times 10^{-43}$ (in effect, p = 0), we can safely conclude that this model shows a statistically significant positive correlation between an African country's negative change in GDP and the country's debt-to-GDP ratio and the presence of either a currency or inflation crisis. To ensure that this model is, in fact, able to be inferred upon, we will also confirm that the model fits the four criteria required for inference for regression:
+As calculated above, the adjusted R squared values are `r glance(best_aic_pcGDP)$adj.r.squared` for our model predicting percent change in GDP, and `r glance(best_aic_pcCPI)$adj.r.squared` for our model predicting percent change in CPI. This latter value attests to the precision of the model in explaining CPI changes in African economies, which by extension
 
-#### Are observations independent?
+### Checking Assumptions
+
+To make checking the assumptions of our models to ensure they are able to be used in general inference, we have developed a quick function to evaluate the two models quickly and without much repetition. We test the four main assumptions required to infer on a model.
 
 Note - this code has been borrowed from the following slide and modified for the purposes of this assignment: https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40
 
-```{r obs-indep-test}
-best_aic_aug <- augment(best_aic)
-ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
-  geom_point() +
-  labs(x = "Index", y = "Residual")
-```
-
-While it may not at first be evident that these points are independent, this is in large part due to the immense y-axis. Zooming in closer to zero, we can see a more random-looking spread.
-
-```{r obs-indep-test-zoom, warning = F}
-best_aic_aug <- augment(best_aic)
-ggplot(data = best_aic_aug, aes(x = 1:nrow(best_aic_aug), y = .resid)) +
-  geom_point() +
-  labs(x = "Index", y = "Residual") +
-  ylim(-50000000000/8, 50000000000/8)
-```
-
-As we can now see more clearly, the spread indicates that there is no trend that would imply dependence between residuals.
-
-#### Are residuals randomly distributed, and are they constantly variant?
-
-(Again, this code has been borrowed from the lecture slides)
-
-```{r dist-and-variance-resids}
-ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
-  geom_point() +
+```{r evaluator-func}
+eval_assumptions <- function(model, lower_bound, upper_bound) {
+  restrict_range_lower <- lower_bound
+  restrict_range_upper <- upper_bound
+  aug <- augment(model)
+  
+  indep_plot <- ggplot(data = aug, aes(x = 1:nrow(aug), y = .resid)) +
+    geom_point(alpha = 0.4) +
+    labs(title = "Are Observations Independent?", x = "Index", y = "Residual")
+  
+  distro_plot <- ggplot(data = aug, aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.4) +
   geom_hline(yintercept = 0, lty = 3, color = "gray") +
-  labs(y = "Residuals", x = "Predicted values, y-hat")
-```
-
-Again, this may be difficult to interpret as random at first, but zooming into the area close to 0 for predicted values shows a more randomized spread.
-
-```{r dist-and-variance-resids-zoom}
-ggplot(data = best_aic_aug, aes(x = .fitted, y = .resid)) +
-  geom_point() +
-  geom_hline(yintercept = 0, lty = 3, color = "gray") +
-  labs(y = "Residuals", x = "Predicted values, y-hat") +
-  xlim(0, 10000000000) +
-  ylim(-2500000000, 2500000000)
-```
-
-Like before, it is now much easier to see the randomness of the residuals.
-
-#### Are residuals normally distributed around 0?
-
-(Again, this code has been borrowed from the lecture slides)
-
-```{r resids-normal-dist}
-ggplot(data = best_aic_aug, aes(x = .resid)) +
+  labs(
+    title = "Are Observations Randomly Distributed with Constant Variance?",
+    y = "Residuals",
+    x = "Predicted values, y-hat")
+  
+  normal_dist <- ggplot(data = aug, aes(x = .resid)) +
   geom_histogram(bins = 75) +
-  labs(x = "Residuals")
+  labs(
+    title = "Are Residuals Normally Distributed?",
+    x = "Residuals")
+  
+  if (!missing(restrict_range_lower) && !missing(restrict_range_upper)) {
+      
+      q_resid <- quantile(aug$.resid,probs = c(restrict_range_lower, restrict_range_upper))
+      
+      q_fitted <- quantile(aug$.fitted, probs = c(restrict_range_lower, restrict_range_upper))
+      
+      indep_plot <- indep_plot + ylim(q_resid[1], q_resid[2])
+      distro_plot <- distro_plot + xlim(q_fitted[1], q_fitted[2]) + ylim(q_resid[1], q_resid[2])
+      normal_dist <- normal_dist + xlim(q_resid[1], q_resid[2])
+
+  }
+  name <- deparse(substitute(model)) %>%
+    substring(., nchar(.) - 2, nchar(.))
+  grid.arrange(
+    top = paste("Model: Annual Percent Change in", name),
+    indep_plot,
+    distro_plot,
+    normal_dist)
+}
 ```
 
-As we can see, the residuals are in fact distributed around 0 with a distribution that can be described as being approximately normal.
+```{r assump_test_GDP, warning = F}
+eval_assumptions(best_aic_pcGDP, 0.05, 0.95)
+```
 
-Taking all of this into account, we can reasonably use this model to infer a negative change in GDP for an African country, given that variables needed by our model are present.
+For our annual percent change in GDP regression model, it is clear that all conditions are met to use the model for inference. While it doesn't explain the variance of our dataset quite as well as our CPI model, it has randomly distributed residuals that are constantly variant and approximately normally distributed.
+
+```{r assump_test_CPI, warning = F}
+eval_assumptions(best_aic_pcCPI, 0.05, 0.95)
+```
+
+In contrast, while our annual percentage change in CPI regression model explains the variance in the dataset much better than our GDP model when comparing adjusted R-squared values, it may not be as suited to general inference. While the observations are independent and approximately normally distributed, there seems to be a clear trend in the distribution of observations. This indicates that while the model is quite precise in repeatedly predicting a similar value for any given factors, it is increasingly inaccurate in predicting larger changes, resulting in more residuals. Therefore, while this model is incredibly effective in predicting changes in CPI when CPI changes are small, it is not as accurate when CPI changes are large. For the purposes of our dataset, this is mostly fine - changes in CPI are generally incremental. In fact, the lack of data for larger changes in CPI can probably explain the inaccuracy of the model at these extremes.
