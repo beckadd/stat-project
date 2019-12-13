@@ -36,30 +36,6 @@ tests <- 1000
 options(scipen = 999)
 ```
 
-We can visualize what years data for economies in African countries is given.
-
-```{r countries-included, warning = F}
-ggplot(data = africa, mapping = aes(x = year)) +
-  geom_histogram(binwidth = 10, fill = "blue", col = "black") +
-  labs(
-    x = "Year",
-    y = "Number of Countries", 
-    title = "Increase in Total Number of African
-    Country Economic Observations Over Time"
-    )
-ggplot(data = africa, mapping = aes(x = country, y = year)) +
-  geom_point(size = .75, col = "orange") +
-  coord_flip() +
-  labs(
-  x = "Country",
-  y = "Year",
-  title = "African Economic Data Observed Each Year by Country"
-  )
-```
-
-
-## Data Analysis
-
 ```{r data-cleaning, warning = F}
 gdps <- gdps %>%
   pivot_longer(
@@ -149,6 +125,49 @@ global <- global[-1,] %>%
 african_gdps <- african_gdps %>%
   mutate(gdp_in_bil = gdp/1000000000)
 ```
+
+
+We can visualize what years data for economies in African countries is given.
+
+```{r countries-included, warning = F}
+ggplot(data = africa, mapping = aes(x = year)) +
+  geom_histogram(binwidth = 10, fill = "blue", col = "black") +
+  labs(
+    x = "Year",
+    y = "Number of Countries", 
+    title = "Increase in Total Number of African
+    Country Economic Observations Over Time"
+    )
+ggplot(data = africa, mapping = aes(x = country, y = year)) +
+  geom_point(size = .75, col = "orange") +
+  coord_flip() +
+  labs(
+  x = "Country",
+  y = "Year",
+  title = "African Economic Data Observed Each Year by Country"
+  )
+```
+
+We can also look at the distribution of GDP for observations since 2000 through visualization as a histogram and summary statistics.
+
+```{r gdp-dist}
+african_gdps2000 <- african_gdps %>%
+  filter(year >= 2000) %>%
+  mutate(gdp = gdp/1000000000)
+
+ggplot(data = african_gdps2000, mapping = aes(x = gdp)) +
+  geom_histogram(fill = "#5967EE", color = "black") +
+  labs(title = "Distribution of African GDPs since 2000", x = "GDP (billions)", 
+       y = "count")
+
+african_gdps2000 %>%
+  summarise(
+    IQR = IQR(gdp),
+    median = median(gdp)) %>%
+  kable(col.names = c("Interquartile Range", "Median"), digits = 1)
+```
+
+## Data Analysis
 
 ## Question 1: How does independence impact a country's economic stability?
 

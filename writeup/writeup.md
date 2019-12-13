@@ -13,6 +13,15 @@ given.
 
 ![](writeup_files/figure-gfm/countries-included-1.png)<!-- -->![](writeup_files/figure-gfm/countries-included-2.png)<!-- -->
 
+We can also look at the distribution of GDP for observations since 2000
+through visualization as a histogram and summary statistics.
+
+![](writeup_files/figure-gfm/gdp-dist-1.png)<!-- -->
+
+| Interquartile Range | Median |
+| ------------------: | -----: |
+|                94.7 |     37 |
+
 ## Data Analysis
 
 ## Question 1: How does independence impact a country’s economic stability?
