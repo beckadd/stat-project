@@ -801,12 +801,9 @@ which by extension
 
 To make checking the assumptions of our models to ensure they are able
 to be used in general inference, we have developed a quick function to
-evaluate the two models quickly and without much repetition. We test the
-four main assumptions required to infer on a model.
-
-Note - this code has been borrowed from the following slide and modified
-for the purposes of this assignment:
-<https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40>
+evaluate the two models quickly and without much repetition. In the
+function, we test the four main assumptions required to infer on a model
+using residual analysis\[1\].
 
 ``` r
 eval_assumptions <- function(model, lower_bound, upper_bound) {
@@ -885,3 +882,7 @@ not as accurate when CPI changes are large. For the purposes of our
 dataset, this is mostly fine - changes in CPI are generally incremental.
 In fact, the lack of data for larger changes in CPI can probably explain
 the inaccuracy of the model at these extremes.
+
+1.  Note - this code has been borrowed from the following slide and
+    modified for the purposes of this assignment:
+    <https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40>

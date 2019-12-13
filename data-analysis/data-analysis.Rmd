@@ -9,15 +9,16 @@ output:
 
 ```{r load-packages, message = F}
 
-#install.packages(c("infer","countrycode","pracma", "plotly", "gridExtra"))
+#install.packages(c("infer","countrycode","tmap", "plotly", "gridExtra"))
 library(infer)
 library(tidyverse)
 library(countrycode)
 library(gridExtra)
-library(pracma)
 library(broom)
 library(knitr)
 library(plotly)
+library(tmap)
+library(sf)
 ```
 
 ```{r load-data-and-initialization, message = F, warning = F}
@@ -401,11 +402,13 @@ african_gdps <- african_gdps %>%
 Let's look at what the percent change of GDP and CPI looks like for African countries in our dataset.
 
 ```{r exploratory-change}
+africa_cont <- read_sf("/cloud/project/data/Africa.shp")
+
+qtm(africa_cont, fill = african_gdps
 african_gdps %>%
   ggplot(aes(color = country)) +
   geom_line(aes(x = year, y = percentchange_gdp)) +
   geom_line(aes(x = year, y = percentchange_cpi, linetype = "twodash")) +
-  facet_grid(rows = vars(region), cols = vars(country)) +
   scale_y_continuous(limits = c(-1,1))
 ```
 
@@ -509,9 +512,8 @@ As calculated above, the adjusted R squared values are `r glance(best_aic_pcGDP)
 
 ### Checking Assumptions
 
-To make checking the assumptions of our models to ensure they are able to be used in general inference, we have developed a quick function to evaluate the two models quickly and without much repetition. We test the four main assumptions required to infer on a model.
+To make checking the assumptions of our models to ensure they are able to be used in general inference, we have developed a quick function to evaluate the two models quickly and without much repetition. In the function, we test the four main assumptions required to infer on a model using residual analysis^[Note - this code has been borrowed from the following slide and modified for the purposes of this assignment: https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40].
 
-Note - this code has been borrowed from the following slide and modified for the purposes of this assignment: https://www2.stat.duke.edu/courses/Fall19/sta199.001/slides/lec-slides/11d-inf-reg.html#40
 
 ```{r evaluator-func}
 eval_assumptions <- function(model, lower_bound, upper_bound) {
