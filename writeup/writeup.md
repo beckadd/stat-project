@@ -49,8 +49,8 @@ next banking crisis?
     ## 1     3     28  31.3
 
 We see that the median amount of years a country will first encounter a
-banking crisis after they achieve independence is about 30 years, with
-an interquartile range of 11 years and a mean of 31.3 years.
+banking crisis after they achieve independence is about 28 years, with
+an interquartile range of 3 years and a mean of 31.3 years.
 
 This is fascinating, but we’re more interested in seeing if there’s a
 difference in the economic stability of independent vs. colonized
