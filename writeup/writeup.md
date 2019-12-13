@@ -3,9 +3,6 @@ An Analysis of African Systemic Crises
 Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 12/13/2019
 
-Your project writeup goes here\! Before you submit, make sure your
-chunks are turned off with `echo = FALSE`.
-
 ## Introduction
 
 We can visualize what years data for economies in African countries is
@@ -41,8 +38,8 @@ movements ultimately affected the stability of their countries’
 economies.
 
 Let’s first do some exploratory data analysis. For each country, let’s
-ask: how many years after independence will a country typically
-experience its next crisis?
+ask: how many years after independence will a country experience its
+next banking crisis?
 
 ![](writeup_files/figure-gfm/independence-1.png)<!-- -->
 
@@ -103,7 +100,7 @@ countries experience greater economic instability compared to when they
 were under colonial
 rule.
 
-## Question 2: Are there differences in economic development and stability between North African and sub-Saharan African Countries?
+## Question 2: Are there regional differences in economic development and stability between North African and sub-Saharan African Countries?
 
 Today, many newspapers, academics, and policymakers classify Africa into
 two broad regions. There’s North Africa, consisting of nations like
