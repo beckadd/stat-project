@@ -11,8 +11,6 @@ knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE)
 ```
 
-Your project writeup goes here! Before you submit, make sure your chunks are turned off with `echo = FALSE`. 
-
 ## Introduction
 ```{r load-packages, message = F}
 
@@ -37,6 +35,7 @@ options(scipen = 999)
 We can visualize what years data for economies in African countries is given.
 
 ```{r countries-included, warning = F}
+
 ggplot(data = african_gdps, mapping = aes(x = year)) +
   geom_histogram(binwidth = 10, fill = "blue", col = "black") +
   labs(
@@ -55,6 +54,26 @@ ggplot(data = african_gdps, mapping = aes(x = country, y = year)) +
   )
 ```
 
+We can also look at the distribution of GDP for observations since 2000 through visualization as a histogram and summary statistics.
+
+```{r gdp-dist}
+african_gdps %>%
+  filter(!is.na(gdp)) %>%
+  filter(year >= 2000) %>%
+  ggplot(mapping = aes(x = gdp)) +
+  geom_histogram(fill = "#5967EE", color = "black") +
+  labs(title = "Distribution of African GDPs since 2000", x = "GDP (billions)", 
+       y = "count")
+
+african_gdps %>%
+  filter(!is.na(gdp)) %>%
+  filter(year >= 2000) %>%
+  summarise(
+    IQR = IQR(gdp),
+    median = median(gdp)) %>%
+  kable(col.names = c("Interquartile Range", "Median"), digits = 1)
+```
+
 
 ## Data Analysis
 
@@ -64,7 +83,7 @@ As African countries made a transition to becoming independent states, many were
 
 Thus, on a broad level, we'd like to determine how these independence movements ultimately affected the stability of their countries' economies.  
 
-Let's first do some exploratory data analysis. For each country, let's ask: how many years after independence will a country typically experience its next crisis?
+Let's first do some exploratory data analysis. For each country, let's ask: how many years after independence will a country experience its next banking crisis?
 
 ```{r independence}
 countries <- tibble(country = distinct(african_gdps, country)$country)
@@ -92,10 +111,9 @@ countries %>%
   ggplot(mapping = aes(x = reorder(country, difference), y =
                          difference)) +
   geom_bar(stat = "identity", fill = "blue") + 
-  labs(title = "Years between a country 
-       achieving independence and its next financial crisis",
-    x = "Country",
-    y = "Number of Years") + 
+  labs(title = "Years Between a Country 
+    Achieving Independence and its Next Banking Crisis",
+    y = "Number of Years", x = "Country") + 
   coord_flip()
 
 countries %>%
@@ -153,7 +171,7 @@ The p-value of our hypothesis test is 0. Since our p-value of 0 is less than our
 
 Ultimately, we can conclude that after gaining independence, African countries experience greater economic instability compared to when they were under colonial rule.
 
-## Question 2: Are there differences in economic development and stability between North African and sub-Saharan African Countries?
+## Question 2: Are there regional differences in economic development and stability between North African and sub-Saharan African Countries?
 
 Today, many newspapers, academics, and policymakers classify Africa into two broad regions. There's North Africa, consisting of nations like Algeria and Morocco, and sub-Saharan Africa, which conists of countries ranging from the Central African Republic to Botswana. Traditionally, people associate sub-Saharan Africa with being less developed and more impoverished compared to the rest of the continent. In recent years, reports by the World Bank have claimed that more and more of the world's poor are being concentrated into a few sub-Saharan countries.
 
