@@ -231,30 +231,203 @@ economies.
 ## Question 3: Can we produce a model to predict economic crises in African economies?
 
 To determine what factors most impacted African economies, we designed
-three linear regression models with the goal of using these to predict
+two linear regression models with the goal of using these to predict
 economic crises in African economies. Given the limits of our own
 statistical knowledge, we were not able to give a regression model that
-directly predicted a systemic crisis, though we used the nation’s change
-in CPI (delta CPI) and change in GDP (delta GDP) as indirect and
-discrete measures of a country’s state of crisis. We claimed that, if
-the delta GDP of a nation was particularly negative, or if the delta
-Consumer Price Index (CPI) – a measure used to study a nation’s
-inflation rate – was particularly high, we could claim that these
-indicated an economic crisis.
+directly predicted a systemic crisis, though we used the nation’s
+percent change in CPI and percent change in GDP as indirect and discrete
+measures of a country’s state of crisis. We claimed that, if the percent
+change in GDP of a nation was particularly negative, or alternatively if
+the percent change in Consumer Price Index (CPI) – a measure used to
+study a nation’s inflation rate – was particularly high, we could claim
+that these indicated an economic crisis. The reasoning for using CPI and
+GDP as indicators of economic crisis is sound, according to external
+research into what can indicate economic crisis worldwide(Kuosmanen &
+Vataja 2013, Meyer & Zaman 2019), so we feel that our proxy metrics for
+predicting economic crisis are fairly strong. Even within our dataset,
+we can see that in crisis, median CPI is consistently higher, and median
+GDP is consistently
+lower.
 
-After plotting the models and performing backwards selection, optimizing
-for AIC, we found that a significant (p \< 0.001) negative correlation
-between a country in a currency crisis and whether they faced a systemic
-economic crisis overall; on average, a country undergoing a currency
-crisis was expected to have a delta GDP of about -4.74 billion USD,
-holding all else constant. Interestingly, we did not find a significant
-correlation (p = 0.073) between inflation crisis and delta GDP, nor did
-we find a significant correlation (p = 0.137) between a country’s
-debt-to-GDP ratio and delta GDP. Finally, we found that there was a
-significant positive correlation (p \< 0.001) between a country’s GDP
-and changes to their GDP, though it was relatively minor – for every
-additional $USD in the country’s GDP, their delta GDP was expected to,
-on average, be about nine cents higher.
+| Systemic Crisis | Median %changeGDP | IQR %changeGDP | Median %changeCPI | IQR %changeCPI |
+| :-------------- | ----------------: | -------------: | ----------------: | -------------: |
+| 0               |         0.0738183 |      0.1320119 |         0.0436661 |      0.7263437 |
+| 1               |         0.0321560 |      0.1823593 |         0.1132106 |      0.8128886 |
+
+For each model, we examined each factor in the dataset and the
+two-factor interactions between every factor; we then performed backward
+selection on each model to determine the most useful variables for
+predicting their respective response variables (optimizing for AIC).
+
+Below, we’ve given a breakdown of the two models: first, %change in GDP,
+and second, %change in CPI.
+
+|             | Adjusted R-Squared |
+| :---------- | -----------------: |
+| %change GDP |              0.229 |
+| %change CPI |              0.879 |
+
+| term                                                          | estimate | p.value |
+| :------------------------------------------------------------ | -------: | ------: |
+| inflation\_crises1                                            | \-21.490 |   0.000 |
+| year:inflation\_crises1                                       |    0.011 |   0.000 |
+| inflation\_crises1:banking\_crisisno\_crisis                  |    0.216 |   0.000 |
+| sovereign\_external\_debt\_default1:banking\_crisisno\_crisis |    0.153 |   0.000 |
+| inflation\_annual\_cpi                                        |    0.020 |   0.001 |
+| sovereign\_external\_debt\_default1:currency\_crises1         |  \-0.161 |   0.001 |
+| year:inflation\_annual\_cpi                                   |    0.000 |   0.001 |
+| currency\_crises1                                             |  \-0.066 |   0.003 |
+| gdp:domestic\_debt\_in\_default1                              |    0.024 |   0.011 |
+| gdp:banking\_crisisno\_crisis                                 |    0.001 |   0.012 |
+| exch\_usd:currency\_crises1                                   |  \-0.001 |   0.014 |
+| gdp\_weighted\_default:regionSub-Saharan                      |  \-5.542 |   0.014 |
+| gdp\_weighted\_default:inflation\_annual\_cpi                 |    0.101 |   0.018 |
+| gdp:gdp\_weighted\_default                                    |    0.042 |   0.019 |
+| exch\_usd:inflation\_crises1                                  |    0.001 |   0.023 |
+| sovereign\_external\_debt\_default1:inflation\_crises1        |    0.136 |   0.024 |
+| gdp:inflation\_annual\_cpi                                    |    0.000 |   0.025 |
+| year:gdp\_weighted\_default                                   |  \-0.302 |   0.025 |
+| gdp\_weighted\_default                                        |  600.837 |   0.025 |
+| gdp\_weighted\_default:inflation\_crises1                     |  \-1.977 |   0.026 |
+| domestic\_debt\_in\_default1                                  |  \-0.138 |   0.026 |
+| sovereign\_external\_debt\_default1                           |  \-0.359 |   0.030 |
+| gdp                                                           |  \-0.001 |   0.040 |
+| independence1                                                 |    0.247 |   0.051 |
+| exch\_usd:percentchange\_cpi                                  |    0.000 |   0.051 |
+| sovereign\_external\_debt\_default1:regionSub-Saharan         |    0.299 |   0.052 |
+| year:regionSub-Saharan                                        |    0.002 |   0.052 |
+| sovereign\_external\_debt\_default1:inflation\_annual\_cpi    |  \-0.002 |   0.060 |
+| regionSub-Saharan                                             |  \-3.110 |   0.072 |
+| percentchange\_cpi:currency\_crises1                          |  \-0.016 |   0.076 |
+| banking\_crisisno\_crisis                                     |   10.893 |   0.081 |
+| year:banking\_crisisno\_crisis                                |  \-0.005 |   0.082 |
+| sovereign\_external\_debt\_default1:percentchange\_cpi        |  \-0.010 |   0.098 |
+| exch\_usd:sovereign\_external\_debt\_default1                 |    0.000 |   0.118 |
+| gdp:exch\_usd                                                 |    0.000 |   0.139 |
+| domestic\_debt\_in\_default1:percentchange\_cpi               |    0.016 |   0.143 |
+| inflation\_annual\_cpi:currency\_crises1                      |    0.001 |   0.149 |
+| independence1:regionSub-Saharan                               |  \-0.192 |   0.152 |
+| regionSub-Saharan:banking\_crisisno\_crisis                   |  \-0.079 |   0.154 |
+| exch\_usd:domestic\_debt\_in\_default1                        |    0.000 |   0.165 |
+| percentchange\_cpi                                            |    0.000 |   0.168 |
+| (Intercept)                                                   |  \-7.345 |   0.248 |
+| year                                                          |    0.004 |   0.261 |
+| exch\_usd                                                     |    0.000 |   0.908 |
+
+| term                                                          |      estimate | p.value |
+| :------------------------------------------------------------ | ------------: | ------: |
+| exch\_usd:currency\_crises1                                   |      2246.617 |   0.000 |
+| domestic\_debt\_in\_default1:banking\_crisisno\_crisis        |  \-735485.207 |   0.000 |
+| domestic\_debt\_in\_default1:currency\_crises1                |    394592.308 |   0.000 |
+| inflation\_annual\_cpi:banking\_crisisno\_crisis              |      2247.004 |   0.000 |
+| exch\_usd:inflation\_crises1                                  |    \-1336.807 |   0.000 |
+| domestic\_debt\_in\_default1:inflation\_crises1               |  \-608869.999 |   0.000 |
+| domestic\_debt\_in\_default1:percentchange\_gdp               |    531416.895 |   0.000 |
+| exch\_usd:percentchange\_gdp                                  |      1044.307 |   0.000 |
+| domestic\_debt\_in\_default1:inflation\_annual\_cpi           |      2164.987 |   0.000 |
+| exch\_usd:domestic\_debt\_in\_default1                        |      1619.425 |   0.000 |
+| inflation\_annual\_cpi:currency\_crises1                      |    \-2043.113 |   0.000 |
+| domestic\_debt\_in\_default1                                  |  28863048.018 |   0.000 |
+| year:domestic\_debt\_in\_default1                             |   \-14291.910 |   0.000 |
+| inflation\_annual\_cpi                                        |   \-15355.542 |   0.000 |
+| year:inflation\_annual\_cpi                                   |         6.703 |   0.000 |
+| sovereign\_external\_debt\_default1:percentchange\_gdp        |  \-176047.049 |   0.000 |
+| banking\_crisisno\_crisis                                     |   9743420.161 |   0.000 |
+| year:banking\_crisisno\_crisis                                |    \-4897.771 |   0.000 |
+| gdp:inflation\_annual\_cpi                                    |         6.761 |   0.000 |
+| year                                                          |      4784.186 |   0.000 |
+| (Intercept)                                                   | \-9514416.857 |   0.000 |
+| percentchange\_gdp:currency\_crises1                          |    122641.601 |   0.000 |
+| inflation\_annual\_cpi:inflation\_crises1                     |      1744.019 |   0.001 |
+| year:inflation\_crises1                                       |    \-2934.811 |   0.001 |
+| inflation\_crises1                                            |   5799030.783 |   0.001 |
+| regionSub-Saharan:banking\_crisisno\_crisis                   |   \-53330.772 |   0.005 |
+| sovereign\_external\_debt\_default1:banking\_crisisno\_crisis |     50705.299 |   0.006 |
+| currency\_crises1:banking\_crisisno\_crisis                   |   \-53029.752 |   0.010 |
+| regionSub-Saharan                                             |     48549.867 |   0.010 |
+| percentchange\_gdp:banking\_crisisno\_crisis                  |   \-95264.013 |   0.021 |
+| gdp:inflation\_crises1                                        |     \-519.162 |   0.039 |
+| gdp\_weighted\_default                                        | 170020966.107 |   0.042 |
+| year:gdp\_weighted\_default                                   |   \-85193.772 |   0.042 |
+| inflation\_crises1:banking\_crisisno\_crisis                  |     41785.838 |   0.051 |
+| gdp:banking\_crisisno\_crisis                                 |       217.889 |   0.057 |
+| gdp\_weighted\_default:regionSub-Saharan                      | \-1205468.685 |   0.060 |
+| year:exch\_usd                                                |       \-3.046 |   0.084 |
+| exch\_usd                                                     |      5982.225 |   0.088 |
+| currency\_crises1                                             |     37178.901 |   0.092 |
+| gdp                                                           |     \-206.157 |   0.099 |
+| sovereign\_external\_debt\_default1                           | \-3303654.804 |   0.114 |
+| gdp:exch\_usd                                                 |       \-1.005 |   0.118 |
+| gdp:gdp\_weighted\_default                                    |      7762.042 |   0.125 |
+| year:sovereign\_external\_debt\_default1                      |      1608.202 |   0.128 |
+| sovereign\_external\_debt\_default1:regionSub-Saharan         |     76907.402 |   0.128 |
+| gdp\_weighted\_default:banking\_crisisno\_crisis              |  \-189736.345 |   0.153 |
+| percentchange\_gdp                                            |     50856.185 |   0.230 |
+
+As these tables show, there are a lot of variables that go into
+predicting changes in GDP and CPI\! We found several variables that fell
+within statistical significance (p \< 0.05) for each variable, as can be
+seen above. To name a few interesting finds for each, we found that the
+percent change in GDP for African economies was highly negatively
+influenced, on average, by whether an inflation crisis was present or
+not. Likewise, we also found that, for Sub-Saharan nations, the
+debt-to-GDP ratio at the time of a default (`gdp_weighted_default`)
+predicted an average decrease in annual %change GDP, indicating a
+further crisis. Altogether, however, with an adjusted r-squared value of
+only about 23 percent, it is difficult to say whether this model can
+give accurate explanations for the variance in the data overall, and
+whether this model is truly useful for predicting annual %change GDP.
+
+Conversely, our CPI model was shockingly accurate for such a complex
+metric, with an adjusted R-squared value of about 88 percent. That being
+said, we must note that the strange and large estimates the model
+provides - we found that they are largely the result of the inclusion of
+Zimbabwe, whose absolutely incredible currency and inflation crisis
+around 2009 onward has made percentages fall way above 100%. Nigeria
+also faced a far less extreme inflation crisis in 1972, which has also
+pushed annual %change in CPI far above 100%. While we contemplated
+making a model without these countries to even out the data, we felt
+that this omission would be to omit the realities of the data, extreme
+or not. Naturally, the exchange rate in USD and the presence of a
+currency crisis in an African economy was highly indicative of a
+positive annual %change CPI, on average; interestingly, though,
+defaulting on domestic debt without a banking crisis drove predicted a
+lower %change in CPI, on average. While we can’t conclusively say why
+this is without further analysis, we might hypothesize that this is due
+to state amnesty - if a nation has to default on its domestic debt, the
+domestic banks responsible for the bailout might be incentivized to
+decrease the production of more currency to mitigate the losses of the
+debt.
+
+Considering whether these models can be used for inference according to
+the Central Limit Theorem, we checked the four essential assumptions
+being made about the normality, spread, and independence of residuals
+and observations. Our residual graphs for each model are below.
+
+![](writeup_files/figure-gfm/assump_test_GDP-1.png)<!-- -->
+
+For our annual percent change in GDP regression model, it is clear that
+all conditions are met to use the model for inference. While it doesn’t
+explain the variance of our dataset quite as well as our CPI model, it
+has randomly distributed residuals that are constantly variant and
+approximately normally distributed.
+
+![](writeup_files/figure-gfm/assump_test_CPI-1.png)<!-- -->
+
+In contrast, while our annual percentage change in CPI regression model
+explains the variance in the dataset much better than our GDP model when
+comparing adjusted R-squared values, it may not be as suited to general
+inference. While the observations are independent and approximately
+normally distributed, there seems to be a clear trend in the
+distribution of observations. This indicates that while the model is
+quite precise in repeatedly predicting a similar value for any given
+factors, it is increasingly inaccurate in predicting larger changes,
+resulting in more residuals. Therefore, while this model is incredibly
+effective in predicting changes in CPI when CPI changes are small, it is
+not as accurate when CPI changes are large. For the purposes of our
+dataset, this is mostly fine - changes in CPI are generally incremental.
+In fact, the lack of data for larger changes in CPI can probably explain
+the inaccuracy of the model at these extremes.
 
 ## Conclusion
 
@@ -306,21 +479,22 @@ from South Africa started at 1900 while the first data from Nigeria
 occurs around 1955. There were also gaps in our data for some countries
 for a couple of years.
 
-We also created a linear regression model to predict economic crises.
+We also created two linear regression models to predict economic crises.
 While our models provide a fairly significant explanation for the
-variation in the dataset, with adjusted r-squared values of 0.3 or
-higher, it is difficult to confidently say whether they can predict
-economic crisis or not, given that we are not able to directly compare
-economic crisis and the explanatory factors of our models. In addition,
-our current models look at the change in GDP and CPI, which we believe
-to be a better indicator of economic stability than the GDP or CPI
-itself, we might improve our models by looking at the change in GDP as a
-proportion of the GDP overall. By doing this, we level our comparisons
-across countries such that a crisis for a small economy (where hundreds
-of millions USD might make the difference between stability and crisis)
-can be compared similarly to a crisis for a large economy (where a delta
-GDP of hundreds of billions USD might only make a small difference in
-the economic productivity of the nation).
+variation in the dataset, with adjusted r-squared values of about 0.30
+and 0.88 for annual %change in GDP and annual %change in CPI,
+respectively, it is difficult to confidently say whether they can
+predict economic crisis or not, given that we are not able to directly
+compare economic crisis and the explanatory factors of our models. In
+addition, our annual %change in CPI model, though precise (in the sense
+that residuals were consistently spread), was not very accurate at more
+extreme %changes in CPI, likely because of the lack of data provided for
+these extremes. That being said, given that most annual shifts in CPI
+are much more marginal than the wild changes seen in some African
+nations of late (notably Zimbabwe and Nigeria), the model does an
+excellent job during times of minor to moderate economic instability
+where %change in CPI is smaller year on year than catastrophic periods
+of rapid and immense change.
 
 Finally, our model could certainly benefit from better generalizability.
 Given the constraints of our dataset and the scarcity of economic data
@@ -345,3 +519,5 @@ actually predict that a crisis will happen in the future. This would be
 a very powerful model, because it could help policymakers and business
 leaders understand that a crisis is looming, allowing them to prepare,
 mitigate, or solve these crises.
+
+###### References

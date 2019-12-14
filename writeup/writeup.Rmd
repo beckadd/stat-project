@@ -2,7 +2,10 @@
 title: "An Analysis of African Systemic Crises"
 author: "Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop"
 date: "12/13/2019"
-output: github_document
+output: 
+  github_document:
+      pandoc_args: --webtex
+bibliography: bibliography.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -14,14 +17,13 @@ knitr::opts_chunk$set(echo = FALSE,
 ## Introduction
 ```{r load-packages, message = F}
 
-#install.packages(c("infer","countrycode","pracma", "plotly"))
+#install.packages(c("infer","countrycode","gridExtra"))
 library(infer)
 library(tidyverse)
 library(countrycode)
-library(pracma)
 library(broom)
 library(knitr)
-library(plotly)
+library(gridExtra)
 ```
 
 ```{r load-data-and-initialization, message = F, warning = F}
@@ -291,13 +293,178 @@ From our results, we can conclude that historically — when accounting for all 
 
 ## Question 3: Can we produce a model to predict economic crises in African economies?
 
+```{r derivative-country-percentchange}
 
-To determine what factors most impacted African economies, we designed three linear regression models with the goal of using these to predict economic crises in African economies. Given the limits of our own statistical knowledge, we were not able to give a regression model that directly predicted a systemic crisis, though we used the nation’s change in CPI (delta CPI) and change in GDP (delta GDP) as indirect and discrete measures of a country’s state of crisis. We claimed that, if the delta GDP of a nation was particularly negative, or if the delta Consumer Price Index (CPI) – a measure used to study a nation’s inflation rate – was particularly high, we could claim that these indicated an economic crisis.
+african_gdps <- african_gdps %>%
+  group_by(country) %>%
+  mutate(
+    percentchange_gdp = (gdp - lag(gdp, default = gdp[1]))/gdp,
+    percentchange_cpi = 
+      (
+        inflation_annual_cpi -
+          lag(inflation_annual_cpi,default = inflation_annual_cpi[1])
+      )
+    /inflation_annual_cpi
+  ) %>%
+  filter(is.finite(percentchange_cpi))
 
-After plotting the models and performing backwards selection, optimizing for AIC, we found that a significant (p < 0.001) negative correlation between a country in a currency crisis and whether they faced a systemic economic crisis overall; on average, a country undergoing a currency crisis was expected to have a delta GDP of about -4.74 billion USD, holding all else constant. Interestingly, we did not find a significant correlation (p = 0.073) between inflation crisis and delta GDP, nor did we find a significant correlation (p = 0.137) between a country’s debt-to-GDP ratio and delta GDP. Finally, we found that there was a significant positive correlation (p < 0.001) between a country’s GDP and changes to their GDP, though it was relatively minor – for every additional $USD in the country’s GDP, their delta GDP was expected to, on average, be about nine cents higher.
+```
 
+To determine what factors most impacted African economies, we designed two linear regression models with the goal of using these to predict economic crises in African economies. Given the limits of our own statistical knowledge, we were not able to give a regression model that directly predicted a systemic crisis, though we used the nation’s percent change in CPI and percent change in GDP as indirect and discrete measures of a country’s state of crisis. We claimed that, if the percent change in GDP of a nation was particularly negative, or alternatively if the percent change in Consumer Price Index (CPI) – a measure used to study a nation’s inflation rate – was particularly high, we could claim that these indicated an economic crisis. The reasoning for using CPI and GDP as indicators of economic crisis is sound, according to external research into what can indicate economic crisis worldwide(Kuosmanen & Vataja 2013, Meyer & Zaman 2019), so we feel that our proxy metrics for predicting economic crisis are fairly strong. Even within our dataset, we can see that in crisis, median CPI is consistently higher, and median GDP is consistently lower.
+
+```{r crisis-and-percentchange}
+african_gdps %>%
+  filter(!is.na(percentchange_gdp)) %>%
+  group_by(systemic_crisis) %>%
+  summarise(
+    median_pcGDP = median(percentchange_gdp),
+    iqr_pcGDP = IQR(percentchange_gdp),
+    median_pcCPI = median(percentchange_cpi),
+    iqr_pcCPI = IQR(percentchange_cpi)
+  ) %>%
+    kable(col.names = c(
+      "Systemic Crisis",
+      "Median %changeGDP",
+      "IQR %changeGDP",
+      "Median %changeCPI",
+      "IQR %changeCPI"))
+  
+```
+
+For each model, we examined each factor in the dataset and the two-factor interactions between every factor; we then performed backward selection on each model to determine the most useful variables for predicting their respective response variables (optimizing for AIC).
+
+Below, we've given a breakdown of the two models: first, %change in GDP, and second, %change in CPI.
+
+```{r full-model}
+
+full_pcGDP_model <- lm(
+  percentchange_gdp ~ 
+    (year +
+    gdp +
+    exch_usd +
+    domestic_debt_in_default +
+    sovereign_external_debt_default +
+    gdp_weighted_default +
+    inflation_annual_cpi +
+    percentchange_cpi +
+    independence +
+    region +
+    currency_crises +
+    inflation_crises +
+    banking_crisis)^2,
+  african_gdps)
+
+full_pcCPI_model <- lm(
+    percentchange_cpi ~ 
+    (year +
+    gdp +
+    exch_usd +
+    domestic_debt_in_default +
+    sovereign_external_debt_default +
+    gdp_weighted_default +
+    inflation_annual_cpi +
+    percentchange_gdp +
+    independence +
+    region +
+    currency_crises +
+    inflation_crises +
+    banking_crisis)^2,
+    african_gdps)
+```
+
+```{r step-func-AIC, results = "hide"}
+
+best_aic_pcGDP <- step(full_pcGDP_model, direction = "backward")
+best_aic_pcCPI <- step(full_pcCPI_model, direction = "backward")
+
+rm(full_pcCPI_model, full_pcGDP_model)
+```
+
+```{r final-model}
+tibble(c("%change GDP", "%change CPI"),c(glance(best_aic_pcGDP)$adj.r.squared, glance(best_aic_pcCPI)$adj.r.squared)) %>%
+  kable(
+    format = "markdown",
+    digits = 3,
+    col.names = c("", "Adjusted R-Squared"))
+
+
+tidy(best_aic_pcGDP) %>%
+  select(term, estimate, p.value) %>%
+  arrange(p.value, abs(estimate)) %>%
+  kable(format = "markdown", digits = 3)
+
+tidy(best_aic_pcCPI) %>%
+  select(term, estimate, p.value) %>%
+  arrange(p.value, abs(estimate)) %>%
+  kable(format = "markdown", digits = 3)
+
+```
+
+As these tables show, there are a lot of variables that go into predicting changes in GDP and CPI! We found several variables that fell within statistical significance (p < 0.05) for each variable, as can be seen above. To name a few interesting finds for each, we found that the percent change in GDP for African economies was highly negatively influenced, on average, by whether an inflation crisis was present or not. Likewise, we also found that, for Sub-Saharan nations, the debt-to-GDP ratio at the time of a default (`gdp_weighted_default`) predicted an average decrease in annual %change GDP, indicating a further crisis. Altogether, however, with an adjusted r-squared value of only about 23 percent, it is difficult to say whether this model can give accurate explanations for the variance in the data overall, and whether this model is truly useful for predicting annual %change GDP.
+
+Conversely, our CPI model was shockingly accurate for such a complex metric, with an adjusted R-squared value of about 88 percent. That being said, we must note that the strange and large estimates the model provides - we found that they are largely the result of the inclusion of Zimbabwe, whose absolutely incredible currency and inflation crisis around 2009 onward has made percentages fall way above 100%. Nigeria also faced a far less extreme inflation crisis in 1972, which has also pushed annual %change in CPI far above 100%. While we contemplated making a model without these countries to even out the data, we felt that this omission would be to omit the realities of the data, extreme or not. Naturally, the exchange rate in USD and the presence of a currency crisis in an African economy was highly indicative of a positive annual %change CPI, on average; interestingly, though, defaulting on domestic debt without a banking crisis drove predicted a lower %change in CPI, on average. While we can't conclusively say why this is without further analysis, we might hypothesize that this is due to state amnesty - if a nation has to default on its domestic debt, the domestic banks responsible for the bailout might be incentivized to decrease the production of more currency to mitigate the losses of the debt.
+
+Considering whether these models can be used for inference according to the Central Limit Theorem, we checked the four essential assumptions being made about the normality, spread, and independence of residuals and observations. Our residual graphs for each model are below.
+
+```{r evaluator-func}
+eval_assumptions <- function(model, lower_bound, upper_bound) {
+  restrict_range_lower <- lower_bound
+  restrict_range_upper <- upper_bound
+  aug <- augment(model)
+  
+  indep_plot <- ggplot(data = aug, aes(x = 1:nrow(aug), y = .resid)) +
+    geom_point(alpha = 0.4) +
+    labs(title = "Are Observations Independent?", x = "Index", y = "Residual")
+  
+  distro_plot <- ggplot(data = aug, aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.4) +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(
+    title = "Are Observations Randomly Distributed with Constant Variance?",
+    y = "Residuals",
+    x = "Predicted values, y-hat")
+  
+  normal_dist <- ggplot(data = aug, aes(x = .resid)) +
+  geom_histogram(bins = 75) +
+  labs(
+    title = "Are Residuals Normally Distributed?",
+    x = "Residuals")
+  
+  if (!missing(restrict_range_lower) && !missing(restrict_range_upper)) {
+      
+      q_resid <- quantile(aug$.resid,probs = c(restrict_range_lower, restrict_range_upper))
+      
+      q_fitted <- quantile(aug$.fitted, probs = c(restrict_range_lower, restrict_range_upper))
+      
+      indep_plot <- indep_plot + ylim(q_resid[1], q_resid[2])
+      distro_plot <- distro_plot + xlim(q_fitted[1], q_fitted[2]) + ylim(q_resid[1], q_resid[2])
+      normal_dist <- normal_dist + xlim(q_resid[1], q_resid[2])
+
+  }
+  name <- deparse(substitute(model)) %>%
+    substring(., nchar(.) - 2, nchar(.))
+  grid.arrange(
+    top = paste("Model: Annual Percent Change in", name),
+    indep_plot,
+    distro_plot,
+    normal_dist)
+}
+```
+
+```{r assump_test_GDP, warning = F}
+eval_assumptions(best_aic_pcGDP, 0.05, 0.95)
+```
+
+For our annual percent change in GDP regression model, it is clear that all conditions are met to use the model for inference. While it doesn't explain the variance of our dataset quite as well as our CPI model, it has randomly distributed residuals that are constantly variant and approximately normally distributed.
+
+```{r assump_test_CPI, warning = F}
+eval_assumptions(best_aic_pcCPI, 0.05, 0.95)
+```
+
+In contrast, while our annual percentage change in CPI regression model explains the variance in the dataset much better than our GDP model when comparing adjusted R-squared values, it may not be as suited to general inference. While the observations are independent and approximately normally distributed, there seems to be a clear trend in the distribution of observations. This indicates that while the model is quite precise in repeatedly predicting a similar value for any given factors, it is increasingly inaccurate in predicting larger changes, resulting in more residuals. Therefore, while this model is incredibly effective in predicting changes in CPI when CPI changes are small, it is not as accurate when CPI changes are large. For the purposes of our dataset, this is mostly fine - changes in CPI are generally incremental. In fact, the lack of data for larger changes in CPI can probably explain the inaccuracy of the model at these extremes.
 
 ## Conclusion
+
 On the whole, we were able to better understand what affects systemic crises and GDP growth through our research project. Through hypothesis tests, we found that whether a country is independent or not greatly correlates with economic stability — after gaining independence, African countries experienced greater economic instability compared to when they were under colonial rule, measured by the proportion of years with systemic crises. To put this into statistical terms, we found that our observed difference in the proportion of years with systemic crisis between independent and non-independent countries would occur by chance less than 5% of the time (using a significance level of 0.05). Since our p-value was less than our significance level, we rejected the null hypothesis (that there was no difference in the proportion of years with systemic crises) and concluded that the data provides convincing evidence to support our alternative hypothesis.
 
 We also found that regional differences, such as those between North Africa and sub-Saharan countries, play a role too. Although our hypothesis tests led us to conclude that there was no significant difference in the median 2013 GDP of each region, we did conclude that sub-Saharan African countries experienced a greater proportion of years with systemic crises compared to North African countries. This fact might be the most interesting of all: it demonstrates that even though there have been historical disparities between these two regions, in the 21st century, sub-Saharan Africa is catching up, if not matching up to, North African economies.
@@ -308,8 +475,11 @@ An assumption of hypothesis tests is that the sample data is randomly sampled fr
 
 Moreover, our dataset was also inconsistent in other ways. Different countries were tracked in the data for different periods of time; data from South Africa started at 1900 while the first data from Nigeria occurs around 1955. There were also gaps in our data for some countries for a couple of years.
 
-We also created a linear regression model to predict economic crises. While our models provide a fairly significant explanation for the variation in the dataset, with adjusted r-squared values of 0.3 or higher, it is difficult to confidently say whether they can predict economic crisis or not, given that we are not able to directly compare economic crisis and the explanatory factors of our models. In addition, our current models look at the change in GDP and CPI, which we believe to be a better indicator of economic stability than the GDP or CPI itself, we might improve our models by looking at the change in GDP as a proportion of the GDP overall. By doing this, we level our comparisons across countries such that a crisis for a small economy (where hundreds of millions USD might make the difference between stability and crisis) can be compared similarly to a crisis for a large economy (where a delta GDP of hundreds of billions USD might only make a small difference in the economic productivity of the nation).
+We also created two linear regression models to predict economic crises. While our models provide a fairly significant explanation for the variation in the dataset, with adjusted r-squared values of about 0.30 and 0.88 for annual %change in GDP and annual %change in CPI, respectively, it is difficult to confidently say whether they can predict economic crisis or not, given that we are not able to directly compare economic crisis and the explanatory factors of our models. In addition, our annual %change in CPI model, though precise (in the sense that residuals were consistently spread), was not very accurate at more extreme %changes in CPI, likely because of the lack of data provided for these extremes. That being said, given that most annual shifts in CPI are much more marginal than the wild changes seen in some African nations of late (notably Zimbabwe and Nigeria), the model does an excellent job during times of minor to moderate economic instability where %change in CPI is smaller year on year than catastrophic periods of rapid and immense change.
 
 Finally, our model could certainly benefit from better generalizability. Given the constraints of our dataset and the scarcity of economic data for African countries prior to 1950, the amount of data provided for some African countries was so sparse that it would be difficult to confidently say that our model accurately explained their economic outcomes.
 
 If we were to start over again, we would try to source a general dataset of economic information on all African countries, with data included for all the years we're interested in. This would make our hypothesis tests and linear regression model much more accurate, and give more accurate claims into whether there's truly differences between independence and non-independence. Of course, however, with the nature of historical economic data, that's hard to gather. If we were to continue on this project, we would be extremely interested in creating a logistic regression model to predict whether a systemic crisis will occur in any given year, given a set of economic indicators like inflation rate and exchange rate. Moreover, we'd also be interested in seeing if we could create a model that, given the years prior to a systemic crisis, can actually predict that a crisis will happen in the future. This would be a very powerful model, because it could help policymakers and business leaders understand that a crisis is looming, allowing them to prepare, mitigate, or solve these crises.
+
+
+###### References
