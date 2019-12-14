@@ -29,9 +29,9 @@ ui <- fluidPage(
                         label = "Data:",
                         choices = 
                             c(
-                                "% change CPI" = "african_sf$percentchange_cpi",
-                                "% change GDP" = "african_sf$percentchange_gdp",
-                                "GDP" = "african_sf$gdp"),
+                                "% change CPI" = "percentchange_cpi",
+                                "% change GDP" = "percentchange_gdp",
+                                "GDP" = "gdp"),
                         selected = "% change CPI"
                         ),
             
@@ -39,16 +39,7 @@ ui <- fluidPage(
                           label = "Countries:",
                           choices = unique(african_sf$country)
                           ),
-            
-            sliderInput(inputId ="year",
-                        label = "Year",
-                        min = min(african_sf$year),
-                        max = max(african_sf$year),
-                        step = 1,
-                        sep = "",
-                        dragRange = T,
-                        value = c(1930, 1951)),
-            
+        
             helpText(
                 "Move this slider to see
                 how the selected measured 
@@ -69,13 +60,12 @@ ui <- fluidPage(
 server <- function(input, output) {
 
     output$boxplot <- renderPlot({
-        african_gdps %>%
-            filter(!is.na(input$measured)) %>%
+        african_sf %>%
             filter(country %in% input$country) %>%
             ggplot(mapping = aes(
-                x = input$year,
-                y = input$measured,
-                fill = region
+                x = year,
+                y = african_sf$(input$measured),
+                color = region
             )) +
                 geom_point()
     })
@@ -84,7 +74,7 @@ server <- function(input, output) {
         map <- tm_shape(filter(World, continent == "Africa")) +
             tm_borders("gray", lwd = 0.1) +
             tm_shape(african_sf) +
-            tm_polygons(col = input$measured, title = "", style = "log10_pretty") +
+            tm_polygons(col = "input$measured", title = "", style = "log10_pretty") +
             tm_text(text = "percent change", size = 0.4) +
             tm_layout("Annual %change CPI",
                       legend.outside = T)
@@ -93,7 +83,7 @@ server <- function(input, output) {
     })
     
     output$table <- renderDataTable(
-        african_gdps %>%
+        african_sf %>%
             filter(!is.na(input$measured)) %>%
             select(country, year, input$measured)
             )
