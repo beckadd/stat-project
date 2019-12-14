@@ -482,8 +482,7 @@ african_gdps <- african_gdps %>%
 Now, while we can’t show with our current stats knowledge whether the
 occurrence of a systemic crisis and GDP growth are related through
 direct means (this would require a binary hypothesis test), we can at
-least show anecdotally that, during times of crisis, there is a
-difference between GDP and CPI.
+least show anecdotally that, during times of crisis, there is a lower
 
 ``` r
 african_gdps %>%
