@@ -26,6 +26,11 @@ library(sf)
 africa <- read_csv("../data/raw-data/african_crises.csv")
 # global <- read_csv("../data/raw-data/global_crisis_data.csv")
 gdps <- read_csv("../data/raw-data/world_gdp_data.csv")
+
+data(World)
+
+World <- World %>%
+  rename(cc3 = iso_a3)
 ```
 
 ## Data Cleaning, the Basic Reworking
@@ -162,8 +167,26 @@ african_gdps <- african_gdps %>%
   mutate(region = as.factor(region))
 ```
 
+```{r sf-creation}
+african_sf <- african_gdps %>%
+  group_by(country) %>%
+  mutate(
+    percentchange_gdp = (gdp - lag(gdp, default = gdp[1]))/gdp,
+    percentchange_cpi = 
+      (
+        inflation_annual_cpi -
+          lag(inflation_annual_cpi,default = inflation_annual_cpi[1])
+      )
+    /inflation_annual_cpi
+  ) %>%
+  mutate(percentchange_cpi = round(percentchange_cpi, 3))%>%
+  filter(is.finite(percentchange_cpi)) %>%
+  merge(World, ., by = "cc3")
+
+```
 ## Saving the data
 
 ```{r save-data}
 save(african_gdps, file = "../data/african_gdps.RData")
+save(african_sf, file = "../data/africa.sf")
 ```

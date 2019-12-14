@@ -70,24 +70,19 @@ african_gdps <- african_gdps %>%
 
 ```{r add-map}
 
-african_gdps <- african_gdps %>%
-  mutate(
-    percentchange_cpi = round(percentchange_cpi, 3)
-  )
-
-african_sf <- merge(World, african_gdps, by = "cc3")
-
-tmap_mode("view")
+tmap_mode("plot")
 
 africa_map <- tm_shape(filter(World, continent == "Africa")) +
   tm_borders("gray", lwd = 0.1) +
   tm_shape(african_sf) +
   tm_facets(along = "year", free.scales.symbol.size = FALSE) +
-  tm_polygons(col = "percentchange_cpi", style = "cont", legend.show = F) +
-  tm_text(text = "percentchange_cpi", size = 0.4)
+  tm_polygons(col = "percentchange_cpi", title = "", style = "log10_pretty") +
+  tm_text(text = "percentchange_cpi", size = 0.4) +
+  tm_layout("Annual %change CPI",
+            legend.outside = T)
 
 
-tmap_animation(africa_map, filename = "../presentation/cpi_over_time.gif",  width = 800)
+tmap_animation(africa_map, filename = "../presentation/cpi_over_time.gif",  width = 1400, delay = 125)
 
 ```
 ```{r}

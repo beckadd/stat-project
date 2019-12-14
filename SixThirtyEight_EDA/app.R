@@ -8,6 +8,13 @@
 #
 
 library(shiny)
+library(tidyverse)
+library(tmap)
+library(leaflet)
+
+load("../data/african_gdps.RData")
+load("../data/africa.sf")
+data(World)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -17,17 +24,43 @@ ui <- fluidPage(
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
+        sidebarPanel = sidebarPanel(
+            selectInput(inputId = "measured",
+                        label = "Data:",
+                        choices = 
+                            c(
+                                "% change CPI" = "african_sf$percentchange_cpi",
+                                "% change GDP" = "african_sf$percentchange_gdp",
+                                "GDP" = "african_sf$gdp"),
+                        selected = "% change CPI"
+                        ),
+            
+            checkboxGroupInput(inputId ="country",
+                          label = "Countries:",
+                          choices = unique(african_sf$country)
+                          ),
+            
+            sliderInput(inputId ="year",
+                        label = "Year",
+                        min = min(african_sf$year),
+                        max = max(african_sf$year),
+                        step = 1,
+                        sep = "",
+                        dragRange = T,
+                        value = c(1930, 1951)),
+            
+            helpText(
+                "Move this slider to see
+                how the selected measured 
+                data changed over time.")
+            ),
+        
+        mainPanel = mainPanel(
+            tabsetPanel(
+                tabPanel("boxplot", plotOutput("boxplot")),
+                tabPanel("map", leafletOutput("map")),
+                tabPanel("table", tableOutput("table"))
+                )
         )
     )
 )
@@ -35,14 +68,35 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    output$boxplot <- renderPlot({
+        african_gdps %>%
+            filter(!is.na(input$measured)) %>%
+            filter(country %in% input$country) %>%
+            ggplot(mapping = aes(
+                x = input$year,
+                y = input$measured,
+                fill = region
+            )) +
+                geom_point()
     })
+    
+    output$map <- renderLeaflet({
+        map <- tm_shape(filter(World, continent == "Africa")) +
+            tm_borders("gray", lwd = 0.1) +
+            tm_shape(african_sf) +
+            tm_polygons(col = input$measured, title = "", style = "log10_pretty") +
+            tm_text(text = "percent change", size = 0.4) +
+            tm_layout("Annual %change CPI",
+                      legend.outside = T)
+        
+        tmap_leaflet(map)
+    })
+    
+    output$table <- renderDataTable(
+        african_gdps %>%
+            filter(!is.na(input$measured)) %>%
+            select(country, year, input$measured)
+            )
 }
 
 # Run the application 
