@@ -42,12 +42,15 @@ conclusion to our research questions.
 
 We chose to explore three research questions with our data:
 
-1)  How does independence impact a country’s economic stability?
-    (hypothesis test of independence)
+1)  How does independence impact a country’s economic stability? In
+    order to investigate this question, we are going to be using a
+    hypothesis test of independence.
 2)  Are there differences in economic development and stability between
-    North African and sub-Saharan African Countries? (hypothesis test of
-    independence)
-3)  What factors influence a country’s GDP the most? (regression model)
+    North African and sub-Saharan African Countries? We will also be
+    using a hypothesis test of independence to try and solve this
+    question.
+3)  What factors influence a country’s GDP the most? For this third
+    question, we will utilize a regression model.
 
 Before getting into some inferential and predictive analysis, we can do
 some exploratory data analysis. First, we can visualize what years data
