@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = FALSE,
 
 ## Introduction
 ```{r load-packages, message = F}
-
 #install.packages(c("infer","countrycode","pracma", "plotly"))
 library(infer)
 library(tidyverse)
@@ -32,16 +31,19 @@ tests <- 1000
 options(scipen = 999)
 ```
 
-We can visualize what years data for economies in African countries is given.
+We chose to examine the stability and development of the economies of African nations, particularly in the context of colonialism and decolonialism. After we had read an article about Zimbabwe’s crippling inflation crisis (in which the nation completely abandoned paper currencies altogether), we wondered how Africa’s history of colonial exploitation and unrest has contributed to the continent’s overall modern day economic instability. We also questioned what factors were correlated with an economic crisis in the continent. To answer these questions, we utilized two datasets. 
+
+The first of these datasets is an excellently curated “African Economic Banking and Systemic Crises Data” from Kaggle user chirin (https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data/version/1#), derived from the global economic crisis dataset created by the Harvard Business School (https://www.hbs.edu/behavioral-finance-and-financial-stability/data/Pages/global.aspx). While this dataset provided insight into instances of “systemic crisis", exchange rate, and CPI (which indicates relative inflation and debt) for thirteen African countries, it critically omitted the GDP of these nations over time – a fairly modern economic growth metric that we were only able to find being consistently used from 1960 onward. Therefore, we sourced and cleaned a second dataset from the World Bank that recorded global GDP data (https://data.worldbank.org/indicator/ny.gdp.mktp.cd), detailing world nations’ GDPs in USD from 1960 to the modern day. We believe that this dataset will be sufficient to detail the impacts of decolonization on African nations’ GDPs (as most African decolonization efforts took place in the mid-to-late 1950s and early 1960s) and provide a working conclusion to our research questions.
+
+Before getting into some inferential and predictive analysis, we can do some exploratory data analysis. First, we can visualize what years data for African economies is given. Over time, we notice that observations for more countries were recorded. Most of the thirteen countries have had consistent economic records since 1960, the year we started being able to join the World Bank GDP dataset.
 
 ```{r countries-included, warning = F}
-
 ggplot(data = african_gdps, mapping = aes(x = year)) +
   geom_histogram(binwidth = 10, fill = "blue", col = "black") +
   labs(
     x = "Year",
     y = "Number of Countries", 
-    title = "Increase in Total Number of African
+    title = "Upward Trend in Total Number of African
     Country Economic Observations Over Time"
     )
 ggplot(data = african_gdps, mapping = aes(x = country, y = year)) +
@@ -54,26 +56,33 @@ ggplot(data = african_gdps, mapping = aes(x = country, y = year)) +
   )
 ```
 
-We can also look at the distribution of GDP for observations since 2000 through visualization as a histogram and summary statistics.
+We can also look at the distribution of GDP for modern-day observations (since 2000) through visualization as a histogram and summary statistics.
 
 ```{r gdp-dist}
 african_gdps %>%
   filter(!is.na(gdp)) %>%
   filter(year >= 2000) %>%
-  ggplot(mapping = aes(x = gdp)) +
-  geom_histogram(fill = "#5967EE", color = "black") +
-  labs(title = "Distribution of African GDPs since 2000", x = "GDP (billions)", 
-       y = "count")
+  summarise(
+    IQR = IQR(gdp),
+    median = median(gdp),
+    mean = mean(gdp)) %>%
+  kable(col.names = c("Interquartile Range (billions $)", "Median (billions $)", "Mean (billions $)"), digits = 1)
 
 african_gdps %>%
   filter(!is.na(gdp)) %>%
   filter(year >= 2000) %>%
-  summarise(
-    IQR = IQR(gdp),
-    median = median(gdp)) %>%
-  kable(col.names = c("Interquartile Range", "Median"), digits = 1)
+  ggplot(mapping = aes(x = gdp)) +
+  geom_histogram(fill = "#5967EE", color = "black") +
+  labs(title = "Distribution of African GDPs since 2000", x = "GDP (billions $)", 
+       y = "count")
 ```
 
+Since 2000, the median GDP for African countries is \$37 billion with an interquartile range of \$94.7 billion. The histogram is heavily right skewed, which would indicate that the mean modern GDP is greater than the median modern GDP. Indeed, the mean modern GDP is \$82.6 billion, much greater than the median, potentially because of high outliers. 
+
+We chose to explore three research questions with our data:
+1) How does independence impact a country's economic stability? (hypothesis test of independence)
+2) Are there differences in economic development and stability between North African and sub-Saharan African Countries? (hypothesis test of independence)
+3) What factors influence a country's GDP the most? (regression model)
 
 ## Data Analysis
 
@@ -81,7 +90,7 @@ african_gdps %>%
 
 As African countries made a transition to becoming independent states, many were plagued by violence or political unrest. A bloody 10-year war in Algeria culminated in its independence; lengthy wars were fought in Angola and Mozambique, sectional divides fraught the Congo, and a political revolt ocurred in Kenya. Many of these movements brought economic instability to their countries. However, at the same time, these independence movements were fought in the hopes that establishing an independent nation would bring greater economic prosperity and stability to their country. 
 
-Thus, on a broad level, we'd like to determine how these independence movements ultimately affected the stability of their countries' economies.  
+Thus, on a broad level, we'd like to determine how these independence movements affected the stability of their countries' economies.  
 
 Let's first do some exploratory data analysis. For each country, let's ask: how many years after independence will a country experience its next banking crisis?
 
@@ -154,7 +163,8 @@ null_dist<- african_gdps %>%
   generate(tests, type = "permute") %>%
   calculate(stat = "diff in props", 
             order = c("1", "0"))
-get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater")
+get_p_value(null_dist, obs_stat = 0.094320737, direction = "greater") %>% 
+  kable(col.names = c("p-value"))
 
 visualize(null_dist) +
   shade_p_value(0.094320737, "greater") +
@@ -177,7 +187,7 @@ Today, many newspapers, academics, and policymakers classify Africa into two bro
 
 We set out to see if this is claim is true; that is, if there's a noticeable difference in economic stability and prosperity between North African and sub-Saharan African countries. We can evaluate these claims in two ways: by analyzing our data on each country's GDP and the proportion of years with systemic crises for each country.
 
-#### Is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
+#### Is the median 2013 GDP of North African countries greater than sub-Saharan countries?
 
 To start, let's calculate the median GDP for North African and sub-Saharan countries. When calculating GDP by region, we'll use 2013 GDP data since it's recent and available for 11 of the 13 African countries in our dataset. 
 
@@ -207,19 +217,16 @@ african_gdps %>%
   labs(title = "Median 2013 GDP by Region", x = "Region", y = "Median GDP (Billion $ USD)")
 ```
 
-From our visualization, we see that the interquartile range in median GDP for sub-Saharan countries is much larger than the interquartile range for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country, which is an outlier for its region. However, the median 2013 GDP for sub-Saharan countries is less than the median 2013 GDP for North African countries.
+From our visualization, we see that the interquartile range in median GDP for sub-Saharan countries is much larger than the interquartile range for North African countries, demonstrating larger variability. The country with the greatest GDP is a sub-Saharan country (South Africa), which is an outlier for its region. However, the median 2013 GDP for sub-Saharan countries is less than the median 2013 GDP for North African countries.The median GDP for North African countries is `r round(rmg[1], 1)` billion dollars; the median GDP for sub-Saharan countries is `r round(rmg[2], 1)` billion dollars. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r round(abs(rmg[1] - rmg[2]), 1)` billion dollars. 
 
-The median GDP for North African countries is `r round(rmg[1], 1)` billion dollars; the median GDP for sub-Saharan countries is `r round(rmg[2], 1)` billion dollars. Therefore, the difference in median GDP between North African and sub-Saharan countries is `r round(abs(rmg[1] - rmg[2]), 1)` billion dollars. 
+Next, we'd like to see if there is a statistically significant relationship between region and GDP. Thus, we'll ask the research question: is the median 2013 GDP of North African countries greater than the median 2013 GDP of sub-Saharan countries?
 
-We'd like to see if this relationship is statistically significant and holds all North African and sub-Saharan countries. Thus, we'll ask the research question: is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
-
-Our null hypothesis is that the median GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the median GDP of North African countries is greater than the median GDP of sub-Saharan African countries.
+Our null hypothesis is that the median 2013 GDP of North African and sub-Saharan countries is the same; the observed difference is due to chance. Our alternative hypothesis is that the median GDP of North African countries is greater than the median GDP of sub-Saharan African countries.
 
 Since we're testing for independence, we'll use permute.
 
 ```{r gdp-prop-diff}
 set.seed(1)
-
 null_dist <- african_gdps %>%
   filter(!is.na(gdp)) %>%
   filter(year == 2013) %>%
@@ -229,13 +236,13 @@ null_dist <- african_gdps %>%
   calculate(stat = "diff in medians", 
             order = c("North Africa", "Sub-Saharan"))
 
+get_p_value(null_dist, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% 
+  kable(col.names = c("p-value"))
+
 visualize(null_dist) +
   shade_p_value(rmg[1] - rmg[2], "greater") +
   labs(title = "Null Distribution of Difference in 2013 Median GDP", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in GDP ($)", 
        y = "Count")
-
-get_p_value(null_dist, obs_stat = rmg[1] - rmg[2], direction = "greater") %>% 
-  kable(col.names = c("p-value"))
 
 rm(null_dist)
 rm(rmg)
@@ -254,7 +261,7 @@ african_gdps %>%
   kable(col.names = c("Region", "Proportion of Years with Crisis"), digits = 4)
 ```
 
-The proportion of years with systemic crises for North African countries is 0.0436; the proportion of years with systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0536, i.e. the proportion of years with systemic crises is 5.36 percentage points higher for sub-Saharan countries compared to North African countries. 
+The proportion of years with systemic crises for North African countries is 0.0436; the proportion of years with systemic crises for sub-Saharan countries is 0.0971. The difference is 0.0536, i.e. the proportion of years with systemic crises is 5.36 percentage points higher for sub-Saharan countries compared to North African countries.
 
 We'd like to see if this relationship is statistically significant and holds for all North African and sub-Saharan countries. We can do so by conducting a hypothesis test to see if sub-Saharan countries have a greater proportion of years with systemic crises than North African countries.
 
@@ -264,7 +271,6 @@ Since we're testing for independence, we'll use permute.
 
 ```{r region-prop-diff}
 set.seed(1)
-
 null_dist <- african_gdps %>%
   specify(response = systemic_crisis, explanatory = region, success = "1") %>%
   hypothesize(null = "independence") %>%
@@ -272,16 +278,15 @@ null_dist <- african_gdps %>%
   calculate(stat = "diff in props", 
             order = c("Sub-Saharan", "North Africa"))
 
+get_p_value(null_dist, obs_stat = 0.0535702, direction = "greater") %>% 
+  kable(col.names = c("p-value"))
+
 visualize(null_dist) +
   shade_p_value(0.0535702, "greater") +
   labs(title = "Null Distribution of Difference in Proportion of Systemic 
   Crises", subtitle = "Between North African and Sub-Saharan Countries", x = "Difference in Proportion", y = "Count")
 
-get_p_value(null_dist, obs_stat = 0.0535702, direction = "greater") %>% 
-  kable(col.names = c("p-value"))
-
 rm(null_dist)
-
 ```
 
 The p-value of our hypothesis test is 0. Since our p-value of 0 is less than the significance level of 0.05, we reject the null hypothesis. The data provides convincing evidence that sub-Saharan countries have a greater proportion of years with systemic crises compared to North African countries.
@@ -291,13 +296,13 @@ From our results, we can conclude that historically — when accounting for all 
 
 ## Question 3: Can we produce a model to predict economic crises in African economies?
 
-
 To determine what factors most impacted African economies, we designed three linear regression models with the goal of using these to predict economic crises in African economies. Given the limits of our own statistical knowledge, we were not able to give a regression model that directly predicted a systemic crisis, though we used the nation’s change in CPI (delta CPI) and change in GDP (delta GDP) as indirect and discrete measures of a country’s state of crisis. We claimed that, if the delta GDP of a nation was particularly negative, or if the delta Consumer Price Index (CPI) – a measure used to study a nation’s inflation rate – was particularly high, we could claim that these indicated an economic crisis.
 
 After plotting the models and performing backwards selection, optimizing for AIC, we found that a significant (p < 0.001) negative correlation between a country in a currency crisis and whether they faced a systemic economic crisis overall; on average, a country undergoing a currency crisis was expected to have a delta GDP of about -4.74 billion USD, holding all else constant. Interestingly, we did not find a significant correlation (p = 0.073) between inflation crisis and delta GDP, nor did we find a significant correlation (p = 0.137) between a country’s debt-to-GDP ratio and delta GDP. Finally, we found that there was a significant positive correlation (p < 0.001) between a country’s GDP and changes to their GDP, though it was relatively minor – for every additional $USD in the country’s GDP, their delta GDP was expected to, on average, be about nine cents higher.
 
 
 ## Conclusion
+
 On the whole, we were able to better understand what affects systemic crises and GDP growth through our research project. Through hypothesis tests, we found that whether a country is independent or not greatly correlates with economic stability — after gaining independence, African countries experienced greater economic instability compared to when they were under colonial rule, measured by the proportion of years with systemic crises. To put this into statistical terms, we found that our observed difference in the proportion of years with systemic crisis between independent and non-independent countries would occur by chance less than 5% of the time (using a significance level of 0.05). Since our p-value was less than our significance level, we rejected the null hypothesis (that there was no difference in the proportion of years with systemic crises) and concluded that the data provides convincing evidence to support our alternative hypothesis.
 
 We also found that regional differences, such as those between North Africa and sub-Saharan countries, play a role too. Although our hypothesis tests led us to conclude that there was no significant difference in the median 2013 GDP of each region, we did conclude that sub-Saharan African countries experienced a greater proportion of years with systemic crises compared to North African countries. This fact might be the most interesting of all: it demonstrates that even though there have been historical disparities between these two regions, in the 21st century, sub-Saharan Africa is catching up, if not matching up to, North African economies.

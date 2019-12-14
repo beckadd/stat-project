@@ -5,19 +5,69 @@ Beck Addison, Jerry Lin, Isabella Swigart, Emma Hirschkop
 
 ## Introduction
 
-We can visualize what years data for economies in African countries is
-given.
+We chose to examine the stability and development of the economies of
+African nations, particularly in the context of colonialism and
+decolonialism. After we had read an article about Zimbabwe’s crippling
+inflation crisis (in which the nation completely abandoned paper
+currencies altogether), we wondered how Africa’s history of colonial
+exploitation and unrest has contributed to the continent’s overall
+modern day economic instability. We also questioned what factors were
+correlated with an economic crisis in the continent. To answer these
+questions, we utilized two datasets.
+
+The first of these datasets is an excellently curated “African Economic
+Banking and Systemic Crises Data” from Kaggle user chirin
+(<https://www.kaggle.com/chirin/africa-economic-banking-and-systemic-crisis-data/version/1#>),
+derived from the global economic crisis dataset created by the Harvard
+Business School
+(<https://www.hbs.edu/behavioral-finance-and-financial-stability/data/Pages/global.aspx>).
+While this dataset provided insight into instances of “systemic crisis”,
+exchange rate, and CPI (which indicates relative inflation and debt) for
+thirteen African countries, it critically omitted the GDP of these
+nations over time – a fairly modern economic growth metric that we were
+only able to find being consistently used from 1960 onward. Therefore,
+we sourced and cleaned a second dataset from the World Bank that
+recorded global GDP data
+(<https://data.worldbank.org/indicator/ny.gdp.mktp.cd>), detailing world
+nations’ GDPs in USD from 1960 to the modern day. We believe that this
+dataset will be sufficient to detail the impacts of decolonization on
+African nations’ GDPs (as most African decolonization efforts took place
+in the mid-to-late 1950s and early 1960s) and provide a working
+conclusion to our research questions.
+
+Before getting into some inferential and predictive analysis, we can do
+some exploratory data analysis. First, we can visualize what years data
+for African economies is given. Over time, we notice that observations
+for more countries were recorded. Most of the thirteen countries have
+had consistent economic records since 1960, the year we started being
+able to join the World Bank GDP
+dataset.
 
 ![](writeup_files/figure-gfm/countries-included-1.png)<!-- -->![](writeup_files/figure-gfm/countries-included-2.png)<!-- -->
 
-We can also look at the distribution of GDP for observations since 2000
-through visualization as a histogram and summary statistics.
+We can also look at the distribution of GDP for modern-day observations
+(since 2000) through visualization as a histogram and summary
+statistics.
+
+| Interquartile Range (billions $) | Median (billions $) | Mean (billions $) |
+| -------------------------------: | ------------------: | ----------------: |
+|                             94.7 |                  37 |              82.6 |
 
 ![](writeup_files/figure-gfm/gdp-dist-1.png)<!-- -->
 
-| Interquartile Range | Median |
-| ------------------: | -----: |
-|                94.7 |     37 |
+Since 2000, the median GDP for African countries is $37 billion with an
+interquartile range of $94.7 billion. The histogram is heavily right
+skewed, which would indicate that the mean modern GDP is greater than
+the median modern GDP. Indeed, the mean modern GDP is $82.6 billion,
+much greater than the median, potentially because of high outliers.
+
+We chose to explore three research questions with our data: 1) How does
+independence impact a country’s economic stability? (hypothesis test of
+independence) 2) Are there differences in economic development and
+stability between North African and sub-Saharan African Countries?
+(hypothesis test of independence) 3) What factors influence a country’s
+GDP the most? (regression
+model)
 
 ## Data Analysis
 
@@ -34,8 +84,7 @@ an independent nation would bring greater economic prosperity and
 stability to their country.
 
 Thus, on a broad level, we’d like to determine how these independence
-movements ultimately affected the stability of their countries’
-economies.
+movements affected the stability of their countries’ economies.
 
 Let’s first do some exploratory data analysis. For each country, let’s
 ask: how many years after independence will a country experience its
@@ -84,10 +133,9 @@ African countries is higher post-independence than pre-independence.
 
 Since we’re testing for independence, we’ll use permutation.
 
-    ## # A tibble: 1 x 1
-    ##   p_value
-    ##     <dbl>
-    ## 1       0
+| p-value |
+| ------: |
+|       0 |
 
 ![](writeup_files/figure-gfm/crisis-prop-diff-1.png)<!-- -->
 
@@ -120,7 +168,7 @@ in two ways: by analyzing our data on each country’s GDP and the
 proportion of years with systemic crises for each
 country.
 
-#### Is the median GDP of North African countries greater than the median GDP of sub-Saharan countries?
+#### Is the median 2013 GDP of North African countries greater than sub-Saharan countries?
 
 To start, let’s calculate the median GDP for North African and
 sub-Saharan countries. When calculating GDP by region, we’ll use 2013
@@ -140,21 +188,20 @@ Let’s also visualize the median GDP by region in 2013.
 From our visualization, we see that the interquartile range in median
 GDP for sub-Saharan countries is much larger than the interquartile
 range for North African countries, demonstrating larger variability. The
-country with the greatest GDP is a sub-Saharan country, which is an
-outlier for its region. However, the median 2013 GDP for sub-Saharan
-countries is less than the median 2013 GDP for North African countries.
+country with the greatest GDP is a sub-Saharan country (South Africa),
+which is an outlier for its region. However, the median 2013 GDP for
+sub-Saharan countries is less than the median 2013 GDP for North African
+countries.The median GDP for North African countries is 106.8 billion
+dollars; the median GDP for sub-Saharan countries is 41.6 billion
+dollars. Therefore, the difference in median GDP between North African
+and sub-Saharan countries is 65.3 billion dollars.
 
-The median GDP for North African countries is 106.8 billion dollars; the
-median GDP for sub-Saharan countries is 41.6 billion dollars. Therefore,
-the difference in median GDP between North African and sub-Saharan
-countries is 65.3 billion dollars.
+Next, we’d like to see if there is a statistically significant
+relationship between region and GDP. Thus, we’ll ask the research
+question: is the median 2013 GDP of North African countries greater than
+the median 2013 GDP of sub-Saharan countries?
 
-We’d like to see if this relationship is statistically significant and
-holds all North African and sub-Saharan countries. Thus, we’ll ask the
-research question: is the median GDP of North African countries greater
-than the median GDP of sub-Saharan countries?
-
-Our null hypothesis is that the median GDP of North African and
+Our null hypothesis is that the median 2013 GDP of North African and
 sub-Saharan countries is the same; the observed difference is due to
 chance. Our alternative hypothesis is that the median GDP of North
 African countries is greater than the median GDP of sub-Saharan African
@@ -162,11 +209,11 @@ countries.
 
 Since we’re testing for independence, we’ll use permute.
 
-![](writeup_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
-
 | p-value |
 | ------: |
 |   0.339 |
+
+![](writeup_files/figure-gfm/gdp-prop-diff-1.png)<!-- -->
 
 The p-value of our hypothesis test is 0.339. Since our p-value of 0.339
 is greater than our significance level of 0.05, we fail to reject the
@@ -205,11 +252,11 @@ is greater than for North African countries.
 
 Since we’re testing for independence, we’ll use permute.
 
-![](writeup_files/figure-gfm/region-prop-diff-1.png)<!-- -->
-
 | p-value |
 | ------: |
 |       0 |
+
+![](writeup_files/figure-gfm/region-prop-diff-1.png)<!-- -->
 
 The p-value of our hypothesis test is 0. Since our p-value of 0 is less
 than the significance level of 0.05, we reject the null hypothesis. The
