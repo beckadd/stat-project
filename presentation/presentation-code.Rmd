@@ -82,11 +82,12 @@ tmap_mode("view")
 africa_map <- tm_shape(filter(World, continent == "Africa")) +
   tm_borders("gray", lwd = 0.1) +
   tm_shape(african_sf) +
-  tm_polygons(col = "percentchange_cpi", style = "cont") +
-  tm_text(text = "percentchange_cpi") +
-  tm_facets(along = "year")
+  tm_facets(along = "year", free.scales.symbol.size = FALSE) +
+  tm_polygons(col = "percentchange_cpi", style = "cont", legend.show = F) +
+  tm_text(text = "percentchange_cpi", size = 0.4)
 
-tmap_animation(africa_map, filename = "../presentation/cpi_over_time.gif",  width = 584)
+
+tmap_animation(africa_map, filename = "../presentation/cpi_over_time.gif",  width = 800)
 
 ```
 ```{r}
